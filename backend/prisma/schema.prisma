@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Channel {
+  id        String       @id @default(cuid())
+  name      String
+  host      String
+  umbralMs  Int          @default(100)
+  active    Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  samples   PingSample[]
+  alerts    AlertEvent[]
+
+  @@index([active])
+}
+
+model PingSample {
+  id        String   @id @default(cuid())
+  channelId String
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  latencyMs Int?
+  lost      Boolean  @default(false)
+  rawOutput String?
+  takenAt   DateTime @default(now())
+
+  @@index([channelId, takenAt(sort: Desc)])
+}
+
+model AlertEvent {
+  id          String    @id @default(cuid())
+  channelId   String
+  channel     Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  type        String
+  severity    String
+  message     String
+  startedAt   DateTime
+  endedAt     DateTime?
+  durationSec Int?
+
+  @@index([channelId, startedAt(sort: Desc)])
+}
+
+model MonitorConfig {
+  id              Int      @id @default(1)
+  umbralMs        Int      @default(100)
+  intervaloSeg    Float    @default(2)
+  duracionPerdida Int      @default(30)
+  duracionLat     Int      @default(3)
+  updatedAt       DateTime @updatedAt
+}
+
+model DiagnosticForm {
+  id               String   @id @default(cuid())
+  sesionTipo       String
+  motivo           String
+  cliente          String
+  nit              String
+  urlProduccion    String
+  urlPruebas       String?
+  urlPortalIt      String?
+  fecha            DateTime
+  sistemaOperativo String
+  navegadores      String[]
+  navegadorOtro    String?
+  isp              String
+  megas            Int
+  oficinas         Json
+  firewallTiene    Boolean
+  firewallNombre   String?
+  antivirusNombre  String
+  createdBy        String?
+  createdAt        DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+}
+
+model FormOption {
+  id       String @id @default(cuid())
+  category String
+  value    String
+
+  @@unique([category, value])
+}
+
+enum EstadoActividad {
+  PLANEADO
+  EJECUTADO
+  REPROGRAMADO
+  NO_REALIZADO
+}
+
+enum Frecuencia {
+  UNICA
+  DIARIO
+  MENSUAL
+  BIMENSUAL
+  TRIMESTRAL
+  SEMESTRAL
+  ANUAL
+  A_DEMANDA
+  CUANDO_SE_REQUIERA
+}
+
+model Auditoria {
+  id          String   @id @default(cuid())
+  nombre      String
+  descripcion String?
+  activa      Boolean  @default(true)
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  activities Activity[]
+
+  @@index([activa])
+}
+
+model Activity {
+  id                   String     @id @default(cuid())
+  auditoriaId          String
+  auditoria            Auditoria  @relation(fields: [auditoriaId], references: [id], onDelete: Cascade)
+  categoria            String
+  nombre               String
+  descripcionEvidencia String?
+  observacion          String?
+  responsable          String
+  frecuencia           Frecuencia
+  activa               Boolean    @default(true)
+  createdBy            String?
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  occurrences ActivityOccurrence[]
+  history     ActivityHistory[]
+
+  @@index([auditoriaId])
+  @@index([categoria])
+}
+
+model ActivityOccurrence {
+  id                    String          @id @default(cuid())
+  activityId            String
+  activity              Activity        @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  periodo               String
+  fechaProgramada       DateTime
+  fechaEjecucion        DateTime?
+  estado                EstadoActividad @default(PLANEADO)
+  observaciones         String?
+  evidenciaUrl          String?
+  evidenciaDescripcion  String?
+  reprogramaciones      Int             @default(0)
+  transcripcionRevisada Boolean         @default(false)
+  notificadoDias        Int[]           @default([])
+  createdBy             String?
+  updatedBy             String?
+  createdAt             DateTime        @default(now())
+  updatedAt              DateTime       @updatedAt
+
+  history    ActivityHistory[]
+  evidencias OccurrenceEvidencia[]
+
+  @@unique([activityId, periodo])
+  @@index([estado, fechaProgramada])
+  @@index([periodo])
+}
+
+model OccurrenceEvidencia {
+  id             String             @id @default(cuid())
+  occurrenceId   String
+  occurrence     ActivityOccurrence @relation(fields: [occurrenceId], references: [id], onDelete: Cascade)
+  url            String
+  nombreOriginal String
+  mimeType       String
+  tamano         Int
+  createdBy      String?
+  createdAt      DateTime           @default(now())
+
+  @@index([occurrenceId])
+}
+
+model ActivityHistory {
+  id            String              @id @default(cuid())
+  activityId    String?
+  activity      Activity?           @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  occurrenceId  String?
+  occurrence    ActivityOccurrence? @relation(fields: [occurrenceId], references: [id], onDelete: Cascade)
+  action        String
+  campo         String?
+  valorAnterior String?
+  valorNuevo    String?
+  userId        String?
+  username      String?
+  createdAt     DateTime            @default(now())
+
+  @@index([activityId, createdAt(sort: Desc)])
+  @@index([occurrenceId, createdAt(sort: Desc)])
+}
+
+model AuditoriaConfig {
+  id                     Int      @id @default(1)
+  diasAntes              Int[]    @default([1, 3, 7])
+  sonidoActivo           Boolean  @default(true)
+  semaforoVerdePct       Int      @default(90)
+  semaforoAmarilloPct    Int      @default(70)
+  notificacionesActivas  Boolean  @default(true)
+  teamsWebhookUrl        String?
+  notifEmails            String?
+  updatedAt              DateTime @updatedAt
+}
