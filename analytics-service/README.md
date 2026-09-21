@@ -60,6 +60,7 @@ Health check: `GET http://localhost:4100/health`.
 | GET    | `/jobs/{jobId}/excel`         | Descarga el `.xlsx` generado                                |
 | GET    | `/jobs/{jobId}/pdf`           | Descarga el `.pdf` generado                                 |
 | WS     | `/ws/jobs/{jobId}?token=...`  | Progreso en vivo: `conectando → analizando → construyendo_plan → generando_excel → generando_pdf → listo` (o `error`) |
+| POST   | `/plan-trabajo/parse-excel`   | Sube un `.xlsx` del plan de trabajo (multipart, campo `file`) y devuelve `{formato, filas, errores}` ya validado — el backend (`import-excel.service.ts`) lo usa para el botón "Reemplazar plan desde Excel" y hace el create/update/desactivar en Postgres a partir de esas filas. Ver `app/plan_trabajo_parser.py`. |
 
 Todos los endpoints REST requieren `Authorization: Bearer <token>`; el WebSocket
 recibe el mismo token como query param `token` (los navegadores no permiten headers

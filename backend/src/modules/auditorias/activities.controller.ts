@@ -14,7 +14,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { ActivitiesService } from './activities.service';
@@ -24,7 +24,7 @@ import { CreateActivityDto } from './dto/create-activity.dto';
 import { UpdateActivityDto } from './dto/update-activity.dto';
 import { FilterActivitiesDto } from './dto/filter-activities.dto';
 
-type AuthedRequest = { user: { sub: string; username: string } };
+type AuthedRequest = Request & { user: { sub: string; username: string } };
 
 @ApiTags('auditorias')
 @ApiBearerAuth()
@@ -69,10 +69,12 @@ export class ActivitiesController {
     @UploadedFile() file: Express.Multer.File,
     @Req() req: AuthedRequest,
   ) {
-    return this.importExcelService.importFromExcel(auditoriaId, file.buffer, {
-      userId: req.user.sub,
-      username: req.user.username,
-    });
+    return this.importExcelService.importFromExcel(
+      auditoriaId,
+      file.buffer,
+      { userId: req.user.sub, username: req.user.username },
+      req.headers.authorization!,
+    );
   }
 
   @Get(':id')

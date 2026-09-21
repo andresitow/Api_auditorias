@@ -6,7 +6,7 @@ import { listOccurrences } from "@/services/auditorias.service";
 import type { ActivityOccurrence, EstadoActividad } from "@/types/auditorias";
 import { EstadoBadge } from "./EstadoBadge";
 
-export type KpiFilterKind = "PLANEADO" | "EJECUTADO" | "REPROGRAMADO" | "NO_REALIZADO" | "vencidas" | "proximas";
+export type KpiFilterKind = "total" | "PLANEADO" | "EJECUTADO" | "REPROGRAMADO" | "NO_REALIZADO" | "vencidas" | "proximas";
 
 interface KpiFilterDef {
   label: string;
@@ -17,6 +17,7 @@ interface KpiFilterDef {
 }
 
 export const KPI_FILTERS: Record<KpiFilterKind, KpiFilterDef> = {
+  total: { label: "actividades en total", badgeClass: "bg-bg3 text-text" },
   PLANEADO: { label: "planeadas", estado: "PLANEADO", badgeClass: "bg-blue-bg text-blue" },
   EJECUTADO: { label: "ejecutadas", estado: "EJECUTADO", badgeClass: "bg-green-bg text-green" },
   REPROGRAMADO: { label: "reprogramadas", estado: "REPROGRAMADO", badgeClass: "bg-orange-bg text-orange" },

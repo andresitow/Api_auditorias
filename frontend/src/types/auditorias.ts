@@ -178,6 +178,9 @@ export interface ImportPlanExcelResult {
   totalFilas: number;
   creadas: number;
   actualizadas: number;
+  eliminadas: number;
+  desactivadas: number;
+  estadosSincronizados: number;
   errores: ImportPlanExcelError[];
 }
 

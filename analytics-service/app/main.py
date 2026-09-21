@@ -7,21 +7,29 @@
 - GET  /auditorias/{id}/export/excel|pdf -> Excel/PDF del "Plan de Trabajo" del año en
   curso (sin job/WS: es una consulta+render directa, no un análisis pesado). El backend
   NestJS (export-bridge.service.ts) solo reenvía la petición con el Bearer del usuario.
+- POST /plan-trabajo/parse-excel -> analiza un .xlsx del plan de trabajo (plantilla
+  simple o el formato nativo "PLAN TRABAJO ANUAL SIG" con secciones de color) y
+  devuelve las filas ya validadas listas para sincronizar. El backend NestJS
+  (import-excel.service.ts) llama a este endpoint y es quien hace el create/update/
+  desactivar contra Postgres — el análisis del Excel vive solo acá (ver
+  plan_trabajo_parser.py), no está duplicado en TypeScript.
 
 El backend NestJS es quien decide qué auditoría existe y quién puede generarla
 (ver backend/src/modules/auditorias/plan-siguiente-anio.* y export-bridge.service.ts);
 este servicio solo valida que el token JWT sea válido, no vuelve a resolver permisos
 de negocio."""
 
+from dataclasses import asdict
 from datetime import datetime, timezone
 
-from fastapi import Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import Depends, FastAPI, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
 
 from . import db, jobs, plan_trabajo_report
 from .config import CORS_ORIGINS
+from .plan_trabajo_parser import PlanTrabajoParseError, parse_plan_trabajo_bytes
 from .security import decode_token, require_auth
 from .ws_manager import hub
 
@@ -124,6 +132,23 @@ def get_plan_trabajo_pdf(
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="resumen-auditoria-{anio}.pdf"'},
     )
+
+
+@app.post("/plan-trabajo/parse-excel")
+async def parse_plan_trabajo_excel(file: UploadFile, _user=Depends(require_auth)) -> dict:
+    contenido = await file.read()
+    try:
+        resultado = parse_plan_trabajo_bytes(contenido)
+    except PlanTrabajoParseError as err:
+        raise HTTPException(status_code=400, detail=str(err)) from err
+    except Exception as err:  # archivo corrupto, no es un .xlsx, etc.
+        raise HTTPException(status_code=400, detail="El archivo no es un .xlsx válido") from err
+    return {
+        "formato": resultado.formato,
+        "anio": resultado.anio,
+        "filas": [asdict(f) for f in resultado.filas],
+        "errores": [asdict(e) for e in resultado.errores],
+    }
 
 
 @app.websocket("/ws/jobs/{job_id}")

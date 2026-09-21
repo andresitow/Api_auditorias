@@ -4,10 +4,15 @@ import { useRef, useState } from "react";
 import { importPlanExcel, descargarPlantillaImportExcel } from "@/services/auditorias.service";
 import type { ImportPlanExcelResult } from "@/types/auditorias";
 
-/** Sube un .xlsx (misma plantilla que descargarPlantillaImportExcel) y actualiza el
- * plan de trabajo: por cada fila crea la actividad si no existe (match por categoría +
- * nombre dentro de la auditoría) o actualiza la existente. Ver backend
- * import-excel.service.ts para la lógica de matching y validación por fila. */
+/** Sube un .xlsx (misma plantilla que descargarPlantillaImportExcel) y sincroniza el
+ * plan de trabajo con su contenido: por cada fila crea la actividad si no existe (match
+ * por categoría + nombre dentro de la auditoría) o actualiza la existente, y al final
+ * remueve (elimina o desactiva) las actividades de la auditoría que no aparecían en el
+ * archivo. Si el archivo trae la grilla mensual de estados (formato nativo), también
+ * sincroniza el % de cumplimiento real: pone en cada ocurrencia el estado (Ejecutado/
+ * Reprogramado/No realizado) que ya estaba marcado en el Excel, en vez de dejarla en
+ * Planeado. Ver backend import-excel.service.ts para la lógica de matching, validación
+ * por fila y sincronización. */
 export function ImportPlanExcel({ auditoriaId, onImported }: { auditoriaId: string; onImported: () => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
@@ -31,7 +36,8 @@ export function ImportPlanExcel({ auditoriaId, onImported }: { auditoriaId: stri
     try {
       const r = await importPlanExcel(auditoriaId, file);
       setResult(r);
-      if (r.creadas > 0 || r.actualizadas > 0) onImported();
+      if (r.creadas > 0 || r.actualizadas > 0 || r.eliminadas > 0 || r.desactivadas > 0 || r.estadosSincronizados > 0)
+        onImported();
     } catch (err) {
       const message = err instanceof Error ? err.message : "No se pudo importar el archivo";
       setError(message);
@@ -48,7 +54,7 @@ export function ImportPlanExcel({ auditoriaId, onImported }: { auditoriaId: stri
         disabled={loading}
         className="h-9 px-3.5 rounded-md border border-border text-text text-[13px] hover:bg-bg3 disabled:opacity-60"
       >
-        {loading ? "Importando…" : "Actualizar plan desde Excel"}
+        {loading ? "Sincronizando…" : "Actualizar plan desde el cargue de excel"}
       </button>
 
       {(result || error) && (
@@ -65,10 +71,13 @@ export function ImportPlanExcel({ auditoriaId, onImported }: { auditoriaId: stri
 
             {result && (
               <div className="flex flex-col gap-3">
-                <div className="grid grid-cols-3 gap-2 text-[13px]">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[13px]">
                   <Kpi label="Filas procesadas" value={String(result.totalFilas)} />
                   <Kpi label="Creadas" value={String(result.creadas)} tone="green" />
                   <Kpi label="Actualizadas" value={String(result.actualizadas)} tone="blue" />
+                  <Kpi label="Desactivadas" value={String(result.desactivadas)} tone="orange" />
+                  <Kpi label="Eliminadas" value={String(result.eliminadas)} tone="red" />
+                  <Kpi label="Estados sincronizados" value={String(result.estadosSincronizados)} tone="blue" />
                 </div>
 
                 {result.errores.length > 0 && (
@@ -99,8 +108,17 @@ export function ImportPlanExcel({ auditoriaId, onImported }: { auditoriaId: stri
   );
 }
 
-function Kpi({ label, value, tone }: { label: string; value: string; tone?: "green" | "blue" }) {
-  const toneClass = tone === "green" ? "text-green" : tone === "blue" ? "text-blue" : "text-text";
+function Kpi({ label, value, tone }: { label: string; value: string; tone?: "green" | "blue" | "orange" | "red" }) {
+  const toneClass =
+    tone === "green"
+      ? "text-green"
+      : tone === "blue"
+        ? "text-blue"
+        : tone === "orange"
+          ? "text-orange"
+          : tone === "red"
+            ? "text-red"
+            : "text-text";
   return (
     <div className="bg-bg3 border border-border rounded-md px-3 py-2">
       <div className="text-muted text-[11px]">{label}</div>

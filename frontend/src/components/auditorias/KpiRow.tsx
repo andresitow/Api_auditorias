@@ -43,7 +43,13 @@ export function KpiRow({
 }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-      <Tile label="Total" value={kpis.total} bar="bg-border" />
+      <Tile
+        label="Total"
+        value={kpis.total}
+        bar="bg-border"
+        selected={selected === "total"}
+        onClick={() => onSelect?.("total")}
+      />
       <Tile
         label="Planeadas"
         value={kpis.porEstado.PLANEADO}
