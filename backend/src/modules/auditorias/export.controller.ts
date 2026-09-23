@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Query, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { EstadoActividad } from '@prisma/client';
@@ -33,7 +41,10 @@ export class ExportController {
       { anio: targetAnio, categoria, estado },
       req.headers.authorization!,
     );
-    res.set({ 'Content-Type': contentType, 'Content-Disposition': `attachment; filename="plan-trabajo-${targetAnio}.xlsx"` });
+    res.set({
+      'Content-Type': contentType,
+      'Content-Disposition': `attachment; filename="plan-trabajo-${targetAnio}.xlsx"`,
+    });
     res.send(buffer);
   }
 
@@ -46,8 +57,15 @@ export class ExportController {
     @Query('categoria') categoria?: string,
   ) {
     const targetAnio = anio ? Number(anio) : new Date().getFullYear();
-    const { buffer, contentType } = await this.bridge.getPdf(auditoriaId, { anio: targetAnio, categoria }, req.headers.authorization!);
-    res.set({ 'Content-Type': contentType, 'Content-Disposition': `attachment; filename="resumen-auditoria-${targetAnio}.pdf"` });
+    const { buffer, contentType } = await this.bridge.getPdf(
+      auditoriaId,
+      { anio: targetAnio, categoria },
+      req.headers.authorization!,
+    );
+    res.set({
+      'Content-Type': contentType,
+      'Content-Disposition': `attachment; filename="resumen-auditoria-${targetAnio}.pdf"`,
+    });
     res.send(buffer);
   }
 }

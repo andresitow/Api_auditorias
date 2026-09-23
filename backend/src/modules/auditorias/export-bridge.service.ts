@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EstadoActividad } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -29,16 +33,22 @@ export class ExportBridgeService {
   private async forward(path: string, authHeader: string): Promise<Response> {
     let response: Response;
     try {
-      response = await fetch(`${this.baseUrl}${path}`, { headers: { Authorization: authHeader } });
+      response = await fetch(`${this.baseUrl}${path}`, {
+        headers: { Authorization: authHeader },
+      });
     } catch {
       throw new InternalServerErrorException(
-        'No se pudo contactar el servicio de analítica (analytics-service). Verificar que esté corriendo en ' + this.baseUrl,
+        'No se pudo contactar el servicio de analítica (analytics-service). Verificar que esté corriendo en ' +
+          this.baseUrl,
       );
     }
-    if (response.status === 404) throw new NotFoundException('La auditoría no existe');
+    if (response.status === 404)
+      throw new NotFoundException('La auditoría no existe');
     if (!response.ok) {
       const detail = await response.text();
-      throw new InternalServerErrorException(`analytics-service respondió ${response.status}: ${detail}`);
+      throw new InternalServerErrorException(
+        `analytics-service respondió ${response.status}: ${detail}`,
+      );
     }
     return response;
   }
@@ -49,15 +59,21 @@ export class ExportBridgeService {
     filters: ExportFilters,
     authHeader: string,
   ): Promise<{ buffer: Buffer; contentType: string }> {
-    const auditoria = await this.prisma.auditoria.findUnique({ where: { id: auditoriaId } });
+    const auditoria = await this.prisma.auditoria.findUnique({
+      where: { id: auditoriaId },
+    });
     if (!auditoria) throw new NotFoundException('Auditoría no encontrada');
 
     const params = new URLSearchParams({ anio: String(filters.anio) });
     if (filters.categoria) params.set('categoria', filters.categoria);
     if (filters.estado) params.set('estado', filters.estado);
 
-    const response = await this.forward(`/auditorias/${auditoriaId}/export/${tipo}?${params.toString()}`, authHeader);
-    const contentType = response.headers.get('content-type') ?? 'application/octet-stream';
+    const response = await this.forward(
+      `/auditorias/${auditoriaId}/export/${tipo}?${params.toString()}`,
+      authHeader,
+    );
+    const contentType =
+      response.headers.get('content-type') ?? 'application/octet-stream';
     const buffer = Buffer.from(await response.arrayBuffer());
     return { buffer, contentType };
   }
@@ -66,7 +82,11 @@ export class ExportBridgeService {
     return this.fetchArchivo(auditoriaId, 'excel', filters, authHeader);
   }
 
-  getPdf(auditoriaId: string, filters: Pick<ExportFilters, 'anio' | 'categoria'>, authHeader: string) {
+  getPdf(
+    auditoriaId: string,
+    filters: Pick<ExportFilters, 'anio' | 'categoria'>,
+    authHeader: string,
+  ) {
     return this.fetchArchivo(auditoriaId, 'pdf', filters, authHeader);
   }
 }

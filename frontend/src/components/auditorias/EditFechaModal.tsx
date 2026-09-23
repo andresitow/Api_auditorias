@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { editOccurrenceFecha } from "@/services/auditorias.service";
 import type { ActivityOccurrence } from "@/types/auditorias";
+import { Button } from "@/components/ui/button";
 
 interface FormValues {
   fechaProgramada: string;
@@ -41,9 +42,9 @@ export function EditFechaModal({
             <div className="text-[15px] font-semibold">Editar fecha</div>
             <div className="text-[12px] text-muted">{occurrence.activity?.nombre}</div>
           </div>
-          <button type="button" onClick={onClose} className="text-muted hover:text-text text-2xl leading-none">
+          <Button type="button" variant="ghost" size="icon" onClick={onClose}>
             ✕
-          </button>
+          </Button>
         </div>
         <div className="px-5 py-4 flex flex-col gap-3.5">
           <div className="text-[12px] text-muted bg-bg3 rounded-md px-3 py-2">
@@ -56,16 +57,12 @@ export function EditFechaModal({
           </div>
         </div>
         <div className="px-5 py-3.5 border-t border-border flex justify-end gap-2.5">
-          <button type="button" onClick={onClose} className="text-muted hover:text-text text-sm px-3 py-2">
+          <Button type="button" variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="h-[34px] px-4 rounded-md border border-blue bg-blue-bg text-blue text-[13px] hover:brightness-110 disabled:opacity-60"
-          >
+          </Button>
+          <Button type="submit" variant="info" disabled={isSubmitting}>
             Guardar
-          </button>
+          </Button>
         </div>
       </form>
     </div>

@@ -1,4 +1,5 @@
 import type { AlarmEntry } from "@/types";
+import { Button } from "@/components/ui/button";
 
 export function HistoryModal({
   nombre,
@@ -17,9 +18,9 @@ export function HistoryModal({
       <div className="bg-bg2 border border-border rounded-xl w-full max-w-[580px] max-h-[84vh] flex flex-col">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <span className="text-[15px] font-semibold">Historial — {nombre}</span>
-          <button onClick={onClose} className="text-muted hover:text-text text-2xl leading-none">
+          <Button variant="ghost" size="icon" onClick={onClose}>
             ✕
-          </button>
+          </Button>
         </div>
         <div className="overflow-y-auto px-5 py-3.5 flex-1">
           {alarmas.length === 0 ? (

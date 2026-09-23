@@ -75,6 +75,32 @@ export interface ActivityOccurrence {
   updatedAt: string;
 }
 
+export interface DeletedActivityHistoryEntry {
+  action: string;
+  campo: string | null;
+  valorAnterior: string | null;
+  valorNuevo: string | null;
+  username: string | null;
+  createdAt: string;
+}
+
+export interface DeletedActivity {
+  id: string;
+  auditoriaId: string;
+  categoria: string;
+  nombre: string;
+  responsable: string;
+  frecuencia: Frecuencia;
+  periodo: string;
+  fechaProgramada: string;
+  motivo: string;
+  historial: DeletedActivityHistoryEntry[];
+  eliminadoPor: string | null;
+  eliminadoPorUsername: string | null;
+  eliminadoEn: string;
+  diasRestantes: number;
+}
+
 export interface ActivityHistoryEntry {
   id: string;
   activityId: string | null;

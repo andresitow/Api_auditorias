@@ -1,8 +1,17 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsDateString,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateOccurrenceDto {
-  @ApiProperty({ description: 'Id de la actividad (debe ser de frecuencia A_DEMANDA o CUANDO_SE_REQUIERA)' })
+  @ApiProperty({
+    description:
+      'Id de la actividad (debe ser de frecuencia A_DEMANDA o CUANDO_SE_REQUIERA)',
+  })
   @IsString()
   @IsNotEmpty()
   activityId: string;

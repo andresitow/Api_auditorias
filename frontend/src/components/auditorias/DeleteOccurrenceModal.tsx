@@ -1,38 +1,45 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { reprogramOccurrence } from "@/services/auditorias.service";
+import { deleteOccurrence } from "@/services/auditorias.service";
 import type { ActivityOccurrence } from "@/types/auditorias";
 import { Button } from "@/components/ui/button";
 
 interface FormValues {
-  nuevaFecha: string;
   motivo: string;
 }
 
 const inputCls = "w-full bg-bg3 border border-border text-text rounded-md px-2.5 h-9 text-[13px] outline-none focus:border-blue";
 const labelCls = "text-[11px] uppercase tracking-wide text-muted mb-1 block";
 
-export function ReprogramModal({
+function formatFecha(iso: string) {
+  const [y, m, d] = iso.slice(0, 10).split("-");
+  return `${d}/${m}/${y}`;
+}
+
+/** Pide el motivo de eliminación antes de borrar una ocurrencia puntual. La ocurrencia
+ * no se pierde: queda en "Actividades eliminadas" (papelera, 30 días) junto con este
+ * motivo y su historial — ver DeletedActivitiesService en el backend. */
+export function DeleteOccurrenceModal({
   auditoriaId,
   occurrence,
   onClose,
-  onSaved,
+  onDeleted,
 }: {
   auditoriaId: string;
   occurrence: ActivityOccurrence;
   onClose: () => void;
-  onSaved: () => void;
+  onDeleted: (result: { actividadEliminada: boolean }) => void;
 }) {
   const {
     register,
     handleSubmit,
     formState: { isSubmitting, errors },
-  } = useForm<FormValues>({ defaultValues: { nuevaFecha: occurrence.fechaProgramada.slice(0, 10), motivo: "" } });
+  } = useForm<FormValues>({ defaultValues: { motivo: "" } });
 
   const onSubmit = handleSubmit(async (values) => {
-    await reprogramOccurrence(auditoriaId, occurrence.id, values);
-    onSaved();
+    const result = await deleteOccurrence(auditoriaId, occurrence.id, values.motivo);
+    onDeleted(result);
   });
 
   return (
@@ -40,7 +47,7 @@ export function ReprogramModal({
       <form onSubmit={onSubmit} className="bg-bg2 border border-border rounded-xl w-full max-w-[440px] max-h-[84vh] flex flex-col">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <div>
-            <div className="text-[15px] font-semibold">Reprogramar</div>
+            <div className="text-[15px] font-semibold">Eliminar fecha</div>
             <div className="text-[12px] text-muted">{occurrence.activity?.nombre}</div>
           </div>
           <Button type="button" variant="ghost" size="icon" onClick={onClose}>
@@ -49,16 +56,12 @@ export function ReprogramModal({
         </div>
         <div className="overflow-y-auto px-5 py-4 flex-1 flex flex-col gap-3.5">
           <div className="text-[12px] text-muted bg-bg3 rounded-md px-3 py-2">
-            Fecha programada actual: <span className="font-mono text-text">{occurrence.fechaProgramada.slice(0, 10)}</span>
-            <br />
-            Reprogramaciones previas: <span className="text-text">{occurrence.reprogramaciones}</span>
+            Se elimina solo la fecha <span className="font-mono text-text">{formatFecha(occurrence.fechaProgramada)}</span>; las demás
+            ocurrencias de la actividad no se ven afectadas. Quedará disponible en &quot;Actividades eliminadas&quot; durante 30 días
+            antes de borrarse en definitiva.
           </div>
           <div>
-            <label className={labelCls}>Nueva fecha</label>
-            <input type="date" className={inputCls} {...register("nuevaFecha", { required: true })} />
-          </div>
-          <div>
-            <label className={labelCls}>Motivo (obligatorio)</label>
+            <label className={labelCls}>Motivo de la eliminación (obligatorio)</label>
             <textarea className={`${inputCls} h-20 py-2`} maxLength={500} {...register("motivo", { required: true })} />
             {errors.motivo && <span className="text-red text-[11px]">El motivo es obligatorio</span>}
           </div>
@@ -67,8 +70,8 @@ export function ReprogramModal({
           <Button type="button" variant="ghost" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit" variant="warning" disabled={isSubmitting}>
-            Reprogramar
+          <Button type="submit" variant="destructive" disabled={isSubmitting}>
+            Eliminar
           </Button>
         </div>
       </form>

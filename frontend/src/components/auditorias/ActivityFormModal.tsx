@@ -14,6 +14,7 @@ import {
   saveDestinationFolderForActivity,
 } from "@/lib/evidenciaFolder";
 import type { Activity, Frecuencia } from "@/types/auditorias";
+import { Button } from "@/components/ui/button";
 
 const CATEGORIAS = [
   "Sensibilización y formación SI",
@@ -86,7 +87,17 @@ export function ActivityFormModal({
           fechaEspecifica: activity.occurrences?.[0]?.fechaProgramada.slice(0, 10) ?? "",
           fechaInicio: "",
         }
-      : { categoria: CATEGORIAS[0], programacion: "frecuencia", frecuencia: "MENSUAL", fechaInicio: "" },
+      : {
+          categoria: CATEGORIAS[0],
+          programacion: "frecuencia",
+          frecuencia: "MENSUAL",
+          // Actividad nueva: arranca hoy, no el 1 de enero. Sin esto, una actividad
+          // creada en septiembre generaba de entrada ocurrencias "Planeado" de
+          // enero a agosto, todas ya vencidas sin que nadie las hubiera programado
+          // realmente — quedaban huérfanas. El usuario puede igual borrar la fecha
+          // o elegir una anterior si de verdad quiere cubrir el año completo.
+          fechaInicio: new Date().toISOString().slice(0, 10),
+        },
   });
   const programacion = watch("programacion");
 
@@ -161,9 +172,9 @@ export function ActivityFormModal({
       <form onSubmit={onSubmit} className="bg-bg2 border border-border rounded-xl w-full max-w-[520px] max-h-[84vh] flex flex-col">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <span className="text-[15px] font-semibold">{activity ? "Editar actividad" : "+ Nueva actividad"}</span>
-          <button type="button" onClick={onClose} className="text-muted hover:text-text text-2xl leading-none">
+          <Button type="button" variant="ghost" size="icon" onClick={onClose}>
             ✕
-          </button>
+          </Button>
         </div>
         <div className="overflow-y-auto px-5 py-4 flex-1 flex flex-col gap-3.5">
           <div>
@@ -239,7 +250,7 @@ export function ActivityFormModal({
                   <label className={labelCls}>Fecha de inicio (opcional)</label>
                   <input type="date" className={inputCls} {...register("fechaInicio")} />
                   <p className="text-[11px] text-muted mt-1">
-                    Las ocurrencias empiezan a generarse desde esta fecha. Si la dejas vacía, se generan todos los periodos del año en curso, incluidos los ya pasados.
+                    Las ocurrencias empiezan a generarse desde esta fecha (por defecto, hoy). Si la borras, se generan todos los periodos del año en curso, incluidos los ya pasados.
                   </p>
                 </div>
               </div>
@@ -262,37 +273,29 @@ export function ActivityFormModal({
               {carpetaDestinoNombre ? (
                 <div className="flex items-center gap-2.5 text-[13px]">
                   <span className="text-text">{carpetaDestinoNombre}</span>
-                  <button type="button" onClick={handleSeleccionarCarpetaDestino} className="text-blue hover:underline">
+                  <Button type="button" variant="link" onClick={handleSeleccionarCarpetaDestino}>
                     Cambiar
-                  </button>
-                  <button type="button" onClick={handleQuitarCarpetaDestino} className="text-red hover:underline">
+                  </Button>
+                  <Button type="button" variant="linkDestructive" onClick={handleQuitarCarpetaDestino}>
                     Quitar
-                  </button>
+                  </Button>
                 </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={handleSeleccionarCarpetaDestino}
-                  className="h-9 px-3 rounded-md border border-border text-[13px] text-muted hover:text-text hover:border-blue"
-                >
+                <Button type="button" variant="outline" onClick={handleSeleccionarCarpetaDestino}>
                   Seleccionar carpeta destino…
-                </button>
+                </Button>
               )}
               {copiaError && <div className="text-red text-[11px] mt-1.5">{copiaError}</div>}
             </div>
           )}
         </div>
         <div className="px-5 py-3.5 border-t border-border flex justify-end gap-2.5">
-          <button type="button" onClick={onClose} className="text-muted hover:text-text text-sm px-3 py-2">
+          <Button type="button" variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="h-[34px] px-4 rounded-md border border-[#2ea043] bg-[#1a3a2a] text-green text-[13px] hover:bg-[#1f4a33] disabled:opacity-60"
-          >
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Guardando…" : activity ? "Guardar cambios" : "Crear actividad"}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

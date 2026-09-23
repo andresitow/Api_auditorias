@@ -1,6 +1,16 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsBoolean,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 
 export class UpdateAuditoriaConfigDto {
   @ApiPropertyOptional({ type: [Number], example: [1, 3, 7] })
@@ -33,17 +43,25 @@ export class UpdateAuditoriaConfigDto {
   @Max(100)
   semaforoAmarilloPct?: number;
 
-  @ApiPropertyOptional({ description: 'Activa/desactiva el envío de notificaciones por Teams/correo' })
+  @ApiPropertyOptional({
+    description: 'Activa/desactiva el envío de notificaciones por Teams/correo',
+  })
   @IsOptional()
   @IsBoolean()
   notificacionesActivas?: boolean;
 
-  @ApiPropertyOptional({ description: 'URL del Incoming Webhook del canal de Teams. Vacío para desactivar ese canal.' })
+  @ApiPropertyOptional({
+    description:
+      'URL del Incoming Webhook del canal de Teams. Vacío para desactivar ese canal.',
+  })
   @IsOptional()
   @IsString()
   teamsWebhookUrl?: string;
 
-  @ApiPropertyOptional({ description: 'Destinatarios de correo separados por coma. Vacío para desactivar ese canal.' })
+  @ApiPropertyOptional({
+    description:
+      'Destinatarios de correo separados por coma. Vacío para desactivar ese canal.',
+  })
   @IsOptional()
   @IsString()
   notifEmails?: string;

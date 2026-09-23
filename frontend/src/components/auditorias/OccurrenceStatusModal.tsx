@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { changeOccurrenceEstado } from "@/services/auditorias.service";
 import { API_URL } from "@/services/api";
 import type { ActivityOccurrence, EstadoActividad, OccurrenceEvidencia } from "@/types/auditorias";
 import { EstadoBadge } from "./EstadoBadge";
+import { Button } from "@/components/ui/button";
 
 const IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
 const MAX_EVIDENCIAS = 5;
@@ -106,9 +107,9 @@ export function OccurrenceStatusModal({
             <div className="text-[15px] font-semibold">Actualizar estado</div>
             <div className="text-[12px] text-muted">{occurrence.activity?.nombre}</div>
           </div>
-          <button type="button" onClick={onClose} className="text-muted hover:text-text text-2xl leading-none">
+          <Button type="button" variant="ghost" size="icon" onClick={onClose}>
             ✕
-          </button>
+          </Button>
         </div>
         <div className="overflow-y-auto px-5 py-4 flex-1 flex flex-col gap-3.5">
           <div>
@@ -154,18 +155,18 @@ export function OccurrenceStatusModal({
                     <div key={ev.id} className="flex items-center gap-2.5">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={`${API_URL}${ev.url}`} alt={ev.nombreOriginal} className="max-h-28 rounded-md border border-border" />
-                      <button type="button" onClick={() => quitarExistente(ev)} className="text-[12px] text-red hover:underline">
+                      <Button type="button" variant="linkDestructive" className="text-[12px]" onClick={() => quitarExistente(ev)}>
                         Quitar
-                      </button>
+                      </Button>
                     </div>
                   ) : (
                     <div key={ev.id} className="flex items-center gap-2.5 text-[12.5px]">
                       <a href={`${API_URL}${ev.url}`} target="_blank" rel="noreferrer" className="px-2.5 py-1.5 rounded-md border border-border bg-bg3 text-blue hover:underline">
                         {ev.nombreOriginal}
                       </a>
-                      <button type="button" onClick={() => quitarExistente(ev)} className="text-[12px] text-red hover:underline">
+                      <Button type="button" variant="linkDestructive" className="text-[12px]" onClick={() => quitarExistente(ev)}>
                         Quitar
-                      </button>
+                      </Button>
                     </div>
                   ),
                 )}
@@ -177,9 +178,9 @@ export function OccurrenceStatusModal({
                 {nuevosArchivos.map((file, i) => (
                   <div key={`${file.name}-${i}`} className="flex items-center gap-2.5 text-[12.5px]">
                     <span className="px-2.5 py-1.5 rounded-md border border-border bg-bg3">{file.name}</span>
-                    <button type="button" onClick={() => quitarNuevo(i)} className="text-[12px] text-red hover:underline">
+                    <Button type="button" variant="linkDestructive" className="text-[12px]" onClick={() => quitarNuevo(i)}>
                       Quitar
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -203,16 +204,12 @@ export function OccurrenceStatusModal({
           </div>
         </div>
         <div className="px-5 py-3.5 border-t border-border flex justify-end gap-2.5">
-          <button type="button" onClick={onClose} className="text-muted hover:text-text text-sm px-3 py-2">
+          <Button type="button" variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="h-[34px] px-4 rounded-md border border-[#2ea043] bg-[#1a3a2a] text-green text-[13px] hover:bg-[#1f4a33] disabled:opacity-60"
-          >
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
             Guardar
-          </button>
+          </Button>
         </div>
       </form>
     </div>

@@ -31,6 +31,15 @@ import { UpdateActivityDto } from './dto/update-activity.dto';
  * si no tiene ocurrencias registradas, o la desactiva conservando historial si ya las
  * tiene). Los errores de fila que reporta el análisis no abortan el resto del archivo.
  *
+ * Para actividades de frecuencia UNICA, categoría+nombre NO alcanza como llave: dos
+ * filas con el mismo nombre pero fecha específica distinta (p.ej. "Auditoría externa"
+ * en marzo y otra vez en octubre) son dos actividades reales, no una repetida — si se
+ * matchearan solo por nombre, la segunda fila pisaría la fecha de la primera y una de
+ * las dos desaparecería. Por eso ahí el match agrega la fecha de la ocurrencia (ver
+ * `buscarExistente`); si la fecha de una UNICA cambia en el Excel, se trata como
+ * "la de antes ya no está, esta es nueva" (coherente con cómo ya se sincronizan los
+ * estados de ocurrencia: la app debe quedar igual al archivo cargado).
+ *
  * Además de la definición de la actividad, el plan nativo trae en sus columnas
  * semanales el estado real (P/E/R/N) de los meses ya transcurridos — analytics-service
  * lo traduce a `fila.periodos` con los mismos identificadores de periodo que genera
@@ -112,7 +121,9 @@ export class ImportExcelService {
     private readonly configService: ConfigService,
     private readonly history: HistoryService,
   ) {
-    this.analyticsServiceUrl = this.configService.get<string>('analyticsServiceUrl')!;
+    this.analyticsServiceUrl = this.configService.get<string>(
+      'analyticsServiceUrl',
+    )!;
   }
 
   async buildTemplate(): Promise<Buffer> {
@@ -162,11 +173,14 @@ export class ImportExcelService {
 
     let response: Response;
     try {
-      response = await fetch(`${this.analyticsServiceUrl}/plan-trabajo/parse-excel`, {
-        method: 'POST',
-        headers: { Authorization: authHeader },
-        body: form,
-      });
+      response = await fetch(
+        `${this.analyticsServiceUrl}/plan-trabajo/parse-excel`,
+        {
+          method: 'POST',
+          headers: { Authorization: authHeader },
+          body: form,
+        },
+      );
     } catch {
       throw new InternalServerErrorException(
         'No se pudo contactar el servicio de analítica (analytics-service) para leer el Excel. Verificar que esté corriendo en ' +
@@ -175,8 +189,12 @@ export class ImportExcelService {
     }
 
     if (response.status === 400) {
-      const detail = (await response.json().catch(() => null)) as { detail?: string } | null;
-      throw new BadRequestException(detail?.detail ?? 'El archivo no es un .xlsx válido');
+      const detail = (await response.json().catch(() => null)) as {
+        detail?: string;
+      } | null;
+      throw new BadRequestException(
+        detail?.detail ?? 'El archivo no es un .xlsx válido',
+      );
     }
     if (!response.ok) {
       const detail = await response.text();
@@ -208,17 +226,11 @@ export class ImportExcelService {
     const aplicarEstados = parsed.anio === new Date().getFullYear();
 
     for (const fila of parsed.filas) {
-      // Se protege ya con categoría+nombre antes de create/update: así, si el create o
-      // el update fallan por algún motivo, la actividad existente igual queda fuera del
-      // barrido de sincronización de más abajo, que solo remueve lo que no aparece en
-      // el archivo.
-      const existing = await this.prisma.activity.findFirst({
-        where: {
-          auditoriaId,
-          categoria: { equals: fila.categoria, mode: 'insensitive' },
-          nombre: { equals: fila.nombre, mode: 'insensitive' },
-        },
-      });
+      // Se protege ya con categoría+nombre (+fecha para UNICA) antes de create/update:
+      // así, si el create o el update fallan por algún motivo, la actividad existente
+      // igual queda fuera del barrido de sincronización de más abajo, que solo remueve
+      // lo que no aparece en el archivo.
+      const existing = await this.buscarExistente(auditoriaId, fila);
       if (existing) vistas.add(existing.id);
 
       try {
@@ -234,7 +246,12 @@ export class ImportExcelService {
             activa: fila.activa,
             fechaEspecifica: fila.fechaEspecifica ?? undefined,
           };
-          await this.activitiesService.update(auditoriaId, existing.id, dto, actor);
+          await this.activitiesService.update(
+            auditoriaId,
+            existing.id,
+            dto,
+            actor,
+          );
           result.actualizadas += 1;
           activityId = existing.id;
         } else {
@@ -248,7 +265,11 @@ export class ImportExcelService {
             activa: fila.activa,
             fechaEspecifica: fila.fechaEspecifica ?? undefined,
           };
-          const created = await this.activitiesService.create(auditoriaId, dto, actor);
+          const created = await this.activitiesService.create(
+            auditoriaId,
+            dto,
+            actor,
+          );
           result.creadas += 1;
           vistas.add(created.id);
           activityId = created.id;
@@ -278,12 +299,39 @@ export class ImportExcelService {
       select: { id: true },
     });
     for (const { id } of sobrantes) {
-      const { eliminada } = await this.activitiesService.deactivate(auditoriaId, id, actor);
+      const { eliminada } = await this.activitiesService.deactivate(
+        auditoriaId,
+        id,
+        actor,
+      );
       if (eliminada) result.eliminadas += 1;
       else result.desactivadas += 1;
     }
 
     return result;
+  }
+
+  /** Busca la actividad existente que le corresponde a una fila del Excel. Por defecto
+   * matchea por (categoría, nombre) dentro de la auditoría; para UNICA suma la fecha de
+   * la ocurrencia, porque ahí el nombre solo no distingue actividades reales distintas
+   * (ver docstring de la clase). */
+  private buscarExistente(auditoriaId: string, fila: FilaActividad) {
+    const esUnicaConFecha =
+      fila.frecuencia === 'UNICA' && !!fila.fechaEspecifica;
+    return this.prisma.activity.findFirst({
+      where: {
+        auditoriaId,
+        categoria: { equals: fila.categoria, mode: 'insensitive' },
+        nombre: { equals: fila.nombre, mode: 'insensitive' },
+        ...(esUnicaConFecha
+          ? {
+              occurrences: {
+                some: { fechaProgramada: new Date(fila.fechaEspecifica!) },
+              },
+            }
+          : {}),
+      },
+    });
   }
 
   /** Pone en cada ocurrencia el estado real (P/E/R/N) que ya traía el Excel para ese
@@ -328,11 +376,21 @@ export class ImportExcelService {
             periodo,
             fechaProgramada,
             estado: estado as EstadoActividad,
-            fechaEjecucion: estado === EstadoActividad.EJECUTADO ? fechaProgramada : undefined,
+            fechaEjecucion:
+              estado === EstadoActividad.EJECUTADO
+                ? fechaProgramada
+                : undefined,
             createdBy: actor.userId,
           },
         });
-        await this.history.logOccurrence(created.id, 'creado_importado_excel', actor, 'estado', undefined, estado);
+        await this.history.logOccurrence(
+          created.id,
+          'creado_importado_excel',
+          actor,
+          'estado',
+          undefined,
+          estado,
+        );
         actualizadas += 1;
         continue;
       }
@@ -344,7 +402,9 @@ export class ImportExcelService {
         data: {
           estado: estado as EstadoActividad,
           fechaEjecucion:
-            estado === EstadoActividad.EJECUTADO ? occurrence.fechaProgramada : occurrence.fechaEjecucion,
+            estado === EstadoActividad.EJECUTADO
+              ? occurrence.fechaProgramada
+              : occurrence.fechaEjecucion,
           updatedBy: actor.userId,
         },
       });

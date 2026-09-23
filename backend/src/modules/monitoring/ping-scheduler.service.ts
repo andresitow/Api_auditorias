@@ -27,7 +27,12 @@ export class PingSchedulerService implements OnModuleInit, OnModuleDestroy {
   private readonly state = new Map<string, ChannelRuntimeState>();
   private readonly timers = new Map<string, ReturnType<typeof setTimeout>>();
   private running = true;
-  private cfg: GlobalCfg = { umbralMs: 100, intervaloSeg: 2, duracionPerdida: 30, duracionLat: 3 };
+  private cfg: GlobalCfg = {
+    umbralMs: 100,
+    intervaloSeg: 2,
+    duracionPerdida: 30,
+    duracionLat: 3,
+  };
 
   constructor(
     private readonly prisma: PrismaService,
@@ -35,7 +40,11 @@ export class PingSchedulerService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   async onModuleInit() {
-    const cfgRow = await this.prisma.monitorConfig.upsert({ where: { id: 1 }, update: {}, create: { id: 1 } });
+    const cfgRow = await this.prisma.monitorConfig.upsert({
+      where: { id: 1 },
+      update: {},
+      create: { id: 1 },
+    });
     this.cfg = {
       umbralMs: cfgRow.umbralMs,
       intervaloSeg: cfgRow.intervaloSeg,
@@ -43,13 +52,22 @@ export class PingSchedulerService implements OnModuleInit, OnModuleDestroy {
       duracionLat: cfgRow.duracionLat,
     };
 
-    let channels = await this.prisma.channel.findMany({ where: { active: true } });
+    let channels = await this.prisma.channel.findMany({
+      where: { active: true },
+    });
     if (channels.length === 0) {
-      channels = await Promise.all(DEFAULT_CHANNELS.map((c) => this.prisma.channel.create({ data: c })));
+      channels = await Promise.all(
+        DEFAULT_CHANNELS.map((c) => this.prisma.channel.create({ data: c })),
+      );
     }
 
     for (const ch of channels) {
-      const info: ChannelInfo = { id: ch.id, nombre: ch.name, host: ch.host, umbral: ch.umbralMs };
+      const info: ChannelInfo = {
+        id: ch.id,
+        nombre: ch.name,
+        host: ch.host,
+        umbral: ch.umbralMs,
+      };
       this.channelsService.registerInMemory(info);
       this.startChannel(info);
     }
@@ -67,7 +85,8 @@ export class PingSchedulerService implements OnModuleInit, OnModuleDestroy {
   applyConfigUpdate(partial: Partial<GlobalCfg>) {
     this.cfg = { ...this.cfg, ...partial };
     if (partial.umbralMs !== undefined) {
-      for (const info of this.channelsService.getAll()) info.umbral = partial.umbralMs;
+      for (const info of this.channelsService.getAll())
+        info.umbral = partial.umbralMs;
     }
   }
 
@@ -135,7 +154,13 @@ export class PingSchedulerService implements OnModuleInit, OnModuleDestroy {
       severidad: AlarmEntry['severidad'],
       opts: { inicio?: string; fin?: string; segundos?: number } = {},
     ): Promise<AlarmEntry> => {
-      const entry: AlarmEntry = { hora: ahora, motivo, tipo, severidad, ...opts };
+      const entry: AlarmEntry = {
+        hora: ahora,
+        motivo,
+        tipo,
+        severidad,
+        ...opts,
+      };
       e.alarmas.unshift(entry);
       if (e.alarmas.length > 300) e.alarmas.pop();
       await this.channelsService.persistAlert(
@@ -151,7 +176,15 @@ export class PingSchedulerService implements OnModuleInit, OnModuleDestroy {
     };
 
     if (lost) {
-      if (['estable', 'latencia_alta', 'alerta_lentitud', 'latencia_rec', 'canal_recuperado'].includes(est)) {
+      if (
+        [
+          'estable',
+          'latencia_alta',
+          'alerta_lentitud',
+          'latencia_rec',
+          'canal_recuperado',
+        ].includes(est)
+      ) {
         e.est = 'perdida';
         e.malDesde = ts;
         e.horaIni = ahora;
@@ -164,9 +197,14 @@ export class PingSchedulerService implements OnModuleInit, OnModuleDestroy {
         if (s >= dp) {
           e.est = 'alerta_critica';
           e.alarmaActiva = true;
-          const a = await registrar(`Pérdida de paquetes ${s}s (desde ${e.horaIni})`, 'alerta_critica', 'critica', {
-            inicio: e.horaIni ?? undefined,
-          });
+          const a = await registrar(
+            `Pérdida de paquetes ${s}s (desde ${e.horaIni})`,
+            'alerta_critica',
+            'critica',
+            {
+              inicio: e.horaIni ?? undefined,
+            },
+          );
           emit('alerta_critica', { nueva_alarma: a });
         } else {
           emit('perdida_silenciosa');

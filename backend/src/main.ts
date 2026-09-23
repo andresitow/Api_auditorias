@@ -21,10 +21,15 @@ async function bootstrap() {
     .filter(Boolean);
   // Los IDs de devtunnel cambian en cada sesión, así que además de la lista
   // fija de CORS_ORIGIN aceptamos cualquier origen *.devtunnels.ms.
-  const devtunnelOriginPattern = /^https:\/\/[a-z0-9]+-\d+\.[a-z0-9.-]+\.devtunnels\.ms$/i;
+  const devtunnelOriginPattern =
+    /^https:\/\/[a-z0-9]+-\d+\.[a-z0-9.-]+\.devtunnels\.ms$/i;
   app.enableCors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin) || devtunnelOriginPattern.test(origin)) {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        devtunnelOriginPattern.test(origin)
+      ) {
         callback(null, true);
       } else {
         callback(new Error(`Origen no permitido por CORS: ${origin}`), false);
@@ -47,7 +52,9 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 4000;
   await app.listen(port);
-  console.log(`API en http://localhost:${port}  ·  Swagger en http://localhost:${port}/docs`);
+  console.log(
+    `API en http://localhost:${port}  ·  Swagger en http://localhost:${port}/docs`,
+  );
 }
 bootstrap().catch((error) => {
   console.error('Error fatal al iniciar la aplicación:', error);

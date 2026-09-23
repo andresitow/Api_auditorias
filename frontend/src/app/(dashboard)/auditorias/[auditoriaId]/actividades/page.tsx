@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/Toast";
-import { deactivateActivity, generateYear, listCategorias, listOccurrences } from "@/services/auditorias.service";
+import { generateYear, listCategorias, listOccurrences } from "@/services/auditorias.service";
 import type { Activity, ActivityOccurrence } from "@/types/auditorias";
 import { FiltersBar, EMPTY_FILTERS, type FiltersState } from "@/components/auditorias/FiltersBar";
 import { OccurrencesTable } from "@/components/auditorias/OccurrencesTable";
@@ -12,8 +12,10 @@ import { OccurrenceStatusModal } from "@/components/auditorias/OccurrenceStatusM
 import { ReprogramModal } from "@/components/auditorias/ReprogramModal";
 import { EditFechaModal } from "@/components/auditorias/EditFechaModal";
 import { OccurrenceHistoryModal } from "@/components/auditorias/OccurrenceHistoryModal";
+import { DeleteOccurrenceModal } from "@/components/auditorias/DeleteOccurrenceModal";
 import { ExportButtons } from "@/components/auditorias/ExportButtons";
 import { ImportPlanExcel } from "@/components/auditorias/ImportPlanExcel";
+import { Button } from "@/components/ui/button";
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = [CURRENT_YEAR - 1, CURRENT_YEAR, CURRENT_YEAR + 1, CURRENT_YEAR + 2];
@@ -32,8 +34,8 @@ export default function ActividadesPage() {
   const [reprogramTarget, setReprogramTarget] = useState<ActivityOccurrence | null>(null);
   const [editFechaTarget, setEditFechaTarget] = useState<ActivityOccurrence | null>(null);
   const [historyTarget, setHistoryTarget] = useState<ActivityOccurrence | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ActivityOccurrence | null>(null);
   const [generating, setGenerating] = useState(false);
-  const [eliminando, setEliminando] = useState(false);
 
   const reload = () => {
     listOccurrences(auditoriaId, { anio }).then(setOccurrences).catch(() => undefined);
@@ -83,24 +85,15 @@ export default function ActividadesPage() {
     }
   };
 
-  const onEliminarActividad = async (occurrence: ActivityOccurrence) => {
-    const actividad = occurrence.activity;
-    if (!actividad) return;
-    if (
-      !confirm(
-        `¿Eliminar la actividad "${actividad.nombre}"?\n\nDejará de aparecer en el plan de trabajo. Si ya tiene historial de seguimiento se conservará (queda desactivada); si nunca se le registró seguimiento, se borra por completo. Esta acción no se puede deshacer.`,
-      )
-    ) {
-      return;
-    }
-    setEliminando(true);
-    try {
-      const r = await deactivateActivity(auditoriaId, actividad.id);
-      toast.success(r.eliminada ? `Actividad "${actividad.nombre}" eliminada.` : `Actividad "${actividad.nombre}" desactivada.`);
-      reload();
-    } finally {
-      setEliminando(false);
-    }
+  const onOcurrenciaEliminada = (result: { actividadEliminada: boolean }) => {
+    const actividad = deleteTarget?.activity;
+    setDeleteTarget(null);
+    toast.success(
+      result.actividadEliminada
+        ? `Fecha eliminada. Era la última de "${actividad?.nombre}", así que la actividad también se eliminó.`
+        : `Fecha eliminada de "${actividad?.nombre}". Podés verla en "Actividades eliminadas" durante 30 días.`,
+    );
+    reload();
   };
 
   return (
@@ -123,20 +116,15 @@ export default function ActividadesPage() {
         <div className="ml-auto flex gap-2">
           <ExportButtons auditoriaId={auditoriaId} anio={anio} categoria={filters.categoria || undefined} estado={filters.estado || undefined} />
           <ImportPlanExcel auditoriaId={auditoriaId} onImported={reload} />
-          <button
+          <Button
+            variant="outline"
             onClick={onGenerateYear}
             disabled={generating}
             title="Genera las ocurrencias del año siguiente para todas las actividades activas, reutilizando la misma plantilla"
-            className="h-9 px-3.5 rounded-md border border-border text-text text-[13px] hover:bg-bg3 disabled:opacity-60"
           >
             {generating ? "Generando…" : `Generar plan ${anio + 1}`}
-          </button>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="h-9 px-3.5 rounded-md border border-[#2ea043] bg-[#1a3a2a] text-green text-[13px] hover:bg-[#1f4a33]"
-          >
-            + Nueva actividad
-          </button>
+          </Button>
+          <Button onClick={() => setShowCreate(true)}>+ Nueva actividad</Button>
         </div>
       </div>
 
@@ -148,8 +136,7 @@ export default function ActividadesPage() {
         onReprogramar={setReprogramTarget}
         onEditarFecha={setEditFechaTarget}
         onHistorial={setHistoryTarget}
-        onEliminarActividad={onEliminarActividad}
-        eliminando={eliminando}
+        onEliminarActividad={setDeleteTarget}
       />
 
       {showCreate && (
@@ -185,6 +172,14 @@ export default function ActividadesPage() {
       )}
       {historyTarget && (
         <OccurrenceHistoryModal auditoriaId={auditoriaId} occurrence={historyTarget} onClose={() => setHistoryTarget(null)} />
+      )}
+      {deleteTarget && (
+        <DeleteOccurrenceModal
+          auditoriaId={auditoriaId}
+          occurrence={deleteTarget}
+          onClose={() => setDeleteTarget(null)}
+          onDeleted={onOcurrenciaEliminada}
+        />
       )}
     </div>
   );

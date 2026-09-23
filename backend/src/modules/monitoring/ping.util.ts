@@ -17,7 +17,9 @@ function buildArgs(host: string): string[] {
 
 export async function hacerPing(host: string): Promise<PingResult> {
   try {
-    const { stdout, stderr } = await execFileAsync('ping', buildArgs(host), { timeout: 5000 });
+    const { stdout, stderr } = await execFileAsync('ping', buildArgs(host), {
+      timeout: 5000,
+    });
     const salida = `${stdout}${stderr}`;
     const lineas = salida
       .split('\n')
@@ -26,10 +28,13 @@ export async function hacerPing(host: string): Promise<PingResult> {
 
     const match = salida.match(/[=<](\d+(?:\.\d+)?)\s*ms/i);
     if (!match) {
-      const raw = lineas.find((l) => /tiempo|time|host|request/i.test(l)) ?? 'Sin respuesta';
+      const raw =
+        lineas.find((l) => /tiempo|time|host|request/i.test(l)) ??
+        'Sin respuesta';
       return { latencyMs: null, lost: true, raw };
     }
-    const raw = lineas.find((l) => /tiempo|time=|bytes/i.test(l)) ?? salida.trim();
+    const raw =
+      lineas.find((l) => /tiempo|time=|bytes/i.test(l)) ?? salida.trim();
     return { latencyMs: parseFloat(match[1]), lost: false, raw };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

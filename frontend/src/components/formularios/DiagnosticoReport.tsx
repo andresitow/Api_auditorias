@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { DiagnosticoPayload } from "@/types/formularios";
+import { Button } from "@/components/ui/button";
 import {
   IPS_LISTA_BLANCA,
   esDefender,
@@ -114,18 +115,13 @@ export function DiagnosticoReport({
 
       <div className="flex justify-between mt-7 print:hidden">
         {onEdit ? (
-          <button onClick={onEdit} className="text-muted hover:text-text text-sm px-3 py-2">
+          <Button variant="ghost" onClick={onEdit}>
             ← Editar respuestas
-          </button>
+          </Button>
         ) : (
           <span />
         )}
-        <button
-          onClick={onPrint ?? (() => window.print())}
-          className="h-[38px] px-4 rounded-md border border-[#2ea043] bg-[#1a3a2a] text-green text-sm hover:bg-[#1f4a33]"
-        >
-          Descargar / Imprimir PDF
-        </button>
+        <Button onClick={onPrint ?? (() => window.print())}>Descargar / Imprimir PDF</Button>
       </div>
     </div>
   );

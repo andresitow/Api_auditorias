@@ -1,6 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsArray, IsDateString, IsEnum, IsOptional, IsString, MaxLength, ValidateIf } from 'class-validator';
+import {
+  IsArray,
+  IsDateString,
+  IsEnum,
+  IsOptional,
+  IsString,
+  MaxLength,
+  ValidateIf,
+} from 'class-validator';
 import { EstadoActividad } from '@prisma/client';
 
 export class UpdateOccurrenceEstadoDto {
@@ -9,7 +17,9 @@ export class UpdateOccurrenceEstadoDto {
   estado: EstadoActividad;
 
   @ApiPropertyOptional({ description: 'Requerida cuando estado = EJECUTADO' })
-  @ValidateIf((o: UpdateOccurrenceEstadoDto) => o.estado === EstadoActividad.EJECUTADO)
+  @ValidateIf(
+    (o: UpdateOccurrenceEstadoDto) => o.estado === EstadoActividad.EJECUTADO,
+  )
   @IsDateString()
   fechaEjecucion?: string;
 
@@ -36,14 +46,14 @@ export class UpdateOccurrenceEstadoDto {
     type: [String],
   })
   @IsOptional()
-  @Transform(({ value }) => {
+  @Transform(({ value }: { value: unknown }) => {
     if (value === undefined || value === null || value === '') return undefined;
-    if (Array.isArray(value)) return value;
+    if (Array.isArray(value)) return value as string[];
     try {
-      const parsed = JSON.parse(value);
-      return Array.isArray(parsed) ? parsed : [value];
+      const parsed: unknown = JSON.parse(value as string);
+      return Array.isArray(parsed) ? (parsed as string[]) : [value as string];
     } catch {
-      return [value];
+      return [value as string];
     }
   })
   @IsArray()

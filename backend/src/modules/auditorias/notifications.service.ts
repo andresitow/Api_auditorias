@@ -1,14 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
-import { EstadoActividad, type ActivityOccurrence, type Activity, type Auditoria, type AuditoriaConfig } from '@prisma/client';
+import {
+  EstadoActividad,
+  type ActivityOccurrence,
+  type Activity,
+  type Auditoria,
+  type AuditoriaConfig,
+} from '@prisma/client';
 import * as nodemailer from 'nodemailer';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditoriaConfigService } from './config.service';
 
 const VENCIDA_MARKER = -1;
 
-type OccurrenceConActividad = ActivityOccurrence & { activity: Activity & { auditoria: Auditoria } };
+type OccurrenceConActividad = ActivityOccurrence & {
+  activity: Activity & { auditoria: Auditoria };
+};
 
 export interface EnvioResultado {
   teams?: 'ok' | 'error';
@@ -39,14 +47,23 @@ export class NotificationsService {
     const horizon = new Date(now.getTime() + maxDias * 86_400_000);
 
     const candidatas = await this.prisma.activityOccurrence.findMany({
-      where: { estado: EstadoActividad.PLANEADO, fechaProgramada: { lte: horizon } },
+      where: {
+        estado: EstadoActividad.PLANEADO,
+        fechaProgramada: { lte: horizon },
+      },
       include: { activity: { include: { auditoria: true } } },
       orderBy: { fechaProgramada: 'asc' },
     });
 
-    const pendientes: { occ: OccurrenceConActividad; marcador: number; diasRestantes: number }[] = [];
+    const pendientes: {
+      occ: OccurrenceConActividad;
+      marcador: number;
+      diasRestantes: number;
+    }[] = [];
     for (const occ of candidatas) {
-      const diasRestantes = Math.ceil((occ.fechaProgramada.getTime() - now.getTime()) / 86_400_000);
+      const diasRestantes = Math.ceil(
+        (occ.fechaProgramada.getTime() - now.getTime()) / 86_400_000,
+      );
       const vencida = diasRestantes < 0;
       const marcador = vencida ? VENCIDA_MARKER : diasRestantes;
       const cruzaUmbral = vencida || cfg.diasAntes.includes(diasRestantes);
@@ -65,18 +82,23 @@ export class NotificationsService {
         data: { notificadoDias: { push: marcador } },
       });
     }
-    this.logger.log(`Notificadas ${pendientes.length} ocurrencia(s): teams=${resultado.teams ?? '-'} email=${resultado.email ?? '-'}`);
+    this.logger.log(
+      `Notificadas ${pendientes.length} ocurrencia(s): teams=${resultado.teams ?? '-'} email=${resultado.email ?? '-'}`,
+    );
   }
 
   /** Envía un mensaje de prueba a los canales configurados, sin tocar datos de ocurrencias. */
   async enviarPrueba(cfg: AuditoriaConfig): Promise<EnvioResultado> {
     return this.enviar(cfg, {
-      texto: 'Mensaje de prueba del módulo de Auditorías: la configuración de notificaciones funciona correctamente.',
+      texto:
+        'Mensaje de prueba del módulo de Auditorías: la configuración de notificaciones funciona correctamente.',
       html: '<p>Mensaje de prueba del módulo de <b>Auditorías</b>: la configuración de notificaciones funciona correctamente.</p>',
     });
   }
 
-  private construirMensaje(pendientes: { occ: OccurrenceConActividad; diasRestantes: number }[]) {
+  private construirMensaje(
+    pendientes: { occ: OccurrenceConActividad; diasRestantes: number }[],
+  ) {
     const porAuditoria = new Map<string, typeof pendientes>();
     for (const p of pendientes) {
       const key = p.occ.activity.auditoria.nombre;
@@ -88,9 +110,16 @@ export class NotificationsService {
     for (const [auditoria, items] of porAuditoria) {
       lineas.push(`\n${auditoria}:`);
       for (const { occ, diasRestantes } of items) {
-        const cuando = diasRestantes < 0 ? `VENCIDA hace ${Math.abs(diasRestantes)} día(s)` : diasRestantes === 0 ? 'vence HOY' : `vence en ${diasRestantes} día(s)`;
+        const cuando =
+          diasRestantes < 0
+            ? `VENCIDA hace ${Math.abs(diasRestantes)} día(s)`
+            : diasRestantes === 0
+              ? 'vence HOY'
+              : `vence en ${diasRestantes} día(s)`;
         const fecha = occ.fechaProgramada.toISOString().slice(0, 10);
-        lineas.push(`  • [${occ.activity.categoria}] ${occ.activity.nombre} — ${occ.activity.responsable} — ${fecha} (${cuando})`);
+        lineas.push(
+          `  • [${occ.activity.categoria}] ${occ.activity.nombre} — ${occ.activity.responsable} — ${fecha} (${cuando})`,
+        );
         filasHtml.push(
           `<tr><td>${auditoria}</td><td>${occ.activity.categoria}</td><td>${occ.activity.nombre}</td><td>${occ.activity.responsable}</td><td>${fecha}</td><td>${cuando}</td></tr>`,
         );
@@ -106,7 +135,10 @@ export class NotificationsService {
     return { texto, html };
   }
 
-  private async enviar(cfg: AuditoriaConfig, mensaje: { texto: string; html: string }): Promise<EnvioResultado> {
+  private async enviar(
+    cfg: AuditoriaConfig,
+    mensaje: { texto: string; html: string },
+  ): Promise<EnvioResultado> {
     const resultado: EnvioResultado = {};
 
     if (cfg.teamsWebhookUrl) {
@@ -127,7 +159,9 @@ export class NotificationsService {
     if (cfg.notifEmails) {
       try {
         await this.getTransporter().sendMail({
-          from: this.env.get<string>('SMTP_FROM') || this.env.get<string>('SMTP_USER'),
+          from:
+            this.env.get<string>('SMTP_FROM') ||
+            this.env.get<string>('SMTP_USER'),
           to: cfg.notifEmails,
           subject: 'Auditorías — Actividades próximas a vencer',
           text: mensaje.texto,
@@ -149,8 +183,15 @@ export class NotificationsService {
     const user = this.env.get<string>('SMTP_USER');
     const pass = this.env.get<string>('SMTP_PASS');
     if (!host || !user || !pass) {
-      throw new Error('SMTP no configurado: define SMTP_HOST, SMTP_USER y SMTP_PASS en el .env del backend');
+      throw new Error(
+        'SMTP no configurado: define SMTP_HOST, SMTP_USER y SMTP_PASS en el .env del backend',
+      );
     }
-    return nodemailer.createTransport({ host, port, secure: port === 465, auth: { user, pass } });
+    return nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465,
+      auth: { user, pass },
+    });
   }
 }

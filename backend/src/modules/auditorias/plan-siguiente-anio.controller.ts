@@ -1,4 +1,13 @@
-import { Controller, Get, Param, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
@@ -19,9 +28,17 @@ export class PlanSiguienteAnioController {
   constructor(private readonly service: PlanSiguienteAnioService) {}
 
   @Post('generar')
-  generar(@Param('auditoriaId') auditoriaId: string, @Query('anio') anio: string, @Req() req: AuthedRequest) {
+  generar(
+    @Param('auditoriaId') auditoriaId: string,
+    @Query('anio') anio: string,
+    @Req() req: AuthedRequest,
+  ) {
     const targetAnio = anio ? Number(anio) : new Date().getFullYear() + 1;
-    return this.service.crearJob(auditoriaId, targetAnio, req.headers.authorization!);
+    return this.service.crearJob(
+      auditoriaId,
+      targetAnio,
+      req.headers.authorization!,
+    );
   }
 
   @Get(':jobId/resumen')
@@ -30,16 +47,38 @@ export class PlanSiguienteAnioController {
   }
 
   @Get(':jobId/excel')
-  async excel(@Param('jobId') jobId: string, @Req() req: AuthedRequest, @Res() res: Response) {
-    const { buffer, contentType } = await this.service.getArchivo(jobId, 'excel', req.headers.authorization!);
-    res.set({ 'Content-Type': contentType, 'Content-Disposition': `attachment; filename="plan-accion.xlsx"` });
+  async excel(
+    @Param('jobId') jobId: string,
+    @Req() req: AuthedRequest,
+    @Res() res: Response,
+  ) {
+    const { buffer, contentType } = await this.service.getArchivo(
+      jobId,
+      'excel',
+      req.headers.authorization!,
+    );
+    res.set({
+      'Content-Type': contentType,
+      'Content-Disposition': `attachment; filename="plan-accion.xlsx"`,
+    });
     res.send(buffer);
   }
 
   @Get(':jobId/pdf')
-  async pdf(@Param('jobId') jobId: string, @Req() req: AuthedRequest, @Res() res: Response) {
-    const { buffer, contentType } = await this.service.getArchivo(jobId, 'pdf', req.headers.authorization!);
-    res.set({ 'Content-Type': contentType, 'Content-Disposition': `attachment; filename="plan-accion.pdf"` });
+  async pdf(
+    @Param('jobId') jobId: string,
+    @Req() req: AuthedRequest,
+    @Res() res: Response,
+  ) {
+    const { buffer, contentType } = await this.service.getArchivo(
+      jobId,
+      'pdf',
+      req.headers.authorization!,
+    );
+    res.set({
+      'Content-Type': contentType,
+      'Content-Disposition': `attachment; filename="plan-accion.pdf"`,
+    });
     res.send(buffer);
   }
 }

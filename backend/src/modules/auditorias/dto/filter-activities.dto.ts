@@ -25,7 +25,9 @@ export class FilterActivitiesDto {
   @IsBoolean()
   activa?: boolean;
 
-  @ApiPropertyOptional({ description: 'Búsqueda por palabra clave en nombre/descripción' })
+  @ApiPropertyOptional({
+    description: 'Búsqueda por palabra clave en nombre/descripción',
+  })
   @IsOptional()
   @IsString()
   q?: string;

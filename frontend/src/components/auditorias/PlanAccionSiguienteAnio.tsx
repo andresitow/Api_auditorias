@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { generarPlanAccion, getPlanAccionResumen, exportPlanAccionExcel, exportPlanAccionPdf } from "@/services/auditorias.service";
 import { usePlanAccionJob } from "@/hooks/usePlanAccionJob";
 import type { PlanAccionDetalle, PlanAccionJobStatus } from "@/types/auditorias";
+import { Button } from "@/components/ui/button";
 
 const ESTADO_LABEL: Record<PlanAccionJobStatus | "idle", string> = {
   idle: "",
@@ -49,21 +50,18 @@ export function PlanAccionSiguienteAnio({ auditoriaId, anioBase }: { auditoriaId
 
   return (
     <>
-      <button
-        onClick={iniciar}
-        className="h-9 px-3.5 rounded-md border border-border bg-bg3 text-text text-[13px] hover:border-blue hover:text-blue"
-      >
+      <Button variant="outline" onClick={iniciar} className="hover:border-blue hover:text-blue">
         Generar plan de acción {anioPlan}
-      </button>
+      </Button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !jobId && setOpen(false)}>
           <div className="w-full max-w-lg bg-bg2 border border-border rounded-lg p-5" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-[15px] font-semibold text-text">Plan de acción {anioPlan}</h2>
-              <button onClick={() => setOpen(false)} className="text-muted hover:text-text text-lg leading-none">
+              <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
                 ×
-              </button>
+              </Button>
             </div>
 
             {!error && (
@@ -93,20 +91,22 @@ export function PlanAccionSiguienteAnio({ auditoriaId, anioBase }: { auditoriaId
                 </div>
 
                 <div className="flex gap-2 mt-2">
-                  <button
+                  <Button
+                    variant="outline"
                     onClick={() => descargar("excel")}
                     disabled={downloading !== null}
-                    className="h-9 px-3.5 rounded-md border border-border bg-bg3 text-text text-[13px] hover:border-green hover:text-green disabled:opacity-60"
+                    className="hover:border-green hover:text-green"
                   >
                     {downloading === "excel" ? "Descargando…" : "Excel"}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="outline"
                     onClick={() => descargar("pdf")}
                     disabled={downloading !== null}
-                    className="h-9 px-3.5 rounded-md border border-border bg-bg3 text-text text-[13px] hover:border-red hover:text-red disabled:opacity-60"
+                    className="hover:border-red hover:text-red"
                   >
                     {downloading === "pdf" ? "Descargando…" : "PDF"}
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}

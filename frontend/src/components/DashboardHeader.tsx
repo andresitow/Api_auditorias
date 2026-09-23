@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { logout } from "@/services/auth.service";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getActiveModule } from "@/lib/navigation";
+import { Button } from "@/components/ui/button";
 
 export function DashboardHeader() {
   const pathname = usePathname();
@@ -28,12 +29,9 @@ export function DashboardHeader() {
       <div className="ml-auto flex items-center gap-3">
         <span className="font-mono text-xs text-muted">{clock}</span>
         <ThemeToggle />
-        <button
-          onClick={logout}
-          className="h-[34px] rounded-full border border-border bg-bg3 px-3.5 text-[13px] font-medium tracking-[-0.008em] text-text transition-colors hover:border-red hover:text-red"
-        >
+        <Button size="sm" onClick={logout}>
           ⎋ Salir
-        </button>
+        </Button>
       </div>
     </header>
   );

@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -17,7 +21,11 @@ export class PlanSiguienteAnioService {
     this.baseUrl = this.configService.get<string>('analyticsServiceUrl')!;
   }
 
-  private async forward(path: string, authHeader: string, init: RequestInit = {}): Promise<Response> {
+  private async forward(
+    path: string,
+    authHeader: string,
+    init: RequestInit = {},
+  ): Promise<Response> {
     let response: Response;
     try {
       response = await fetch(`${this.baseUrl}${path}`, {
@@ -26,15 +34,25 @@ export class PlanSiguienteAnioService {
       });
     } catch {
       throw new InternalServerErrorException(
-        'No se pudo contactar el servicio de analítica (analytics-service). Verificar que esté corriendo en ' + this.baseUrl,
+        'No se pudo contactar el servicio de analítica (analytics-service). Verificar que esté corriendo en ' +
+          this.baseUrl,
       );
     }
-    if (response.status === 404) throw new NotFoundException('El job ya no existe o todavía no termina de generarse');
+    if (response.status === 404)
+      throw new NotFoundException(
+        'El job ya no existe o todavía no termina de generarse',
+      );
     return response;
   }
 
-  async crearJob(auditoriaId: string, anio: number, authHeader: string): Promise<{ jobId: string }> {
-    const auditoria = await this.prisma.auditoria.findUnique({ where: { id: auditoriaId } });
+  async crearJob(
+    auditoriaId: string,
+    anio: number,
+    authHeader: string,
+  ): Promise<{ jobId: string }> {
+    const auditoria = await this.prisma.auditoria.findUnique({
+      where: { id: auditoriaId },
+    });
     if (!auditoria) throw new NotFoundException('Auditoría no encontrada');
 
     const response = await this.forward('/jobs', authHeader, {
@@ -44,7 +62,9 @@ export class PlanSiguienteAnioService {
     });
     if (!response.ok) {
       const detail = await response.text();
-      throw new InternalServerErrorException(`analytics-service respondió ${response.status}: ${detail}`);
+      throw new InternalServerErrorException(
+        `analytics-service respondió ${response.status}: ${detail}`,
+      );
     }
     return response.json() as Promise<{ jobId: string }>;
   }
@@ -54,9 +74,14 @@ export class PlanSiguienteAnioService {
     return response.json();
   }
 
-  async getArchivo(jobId: string, tipo: 'excel' | 'pdf', authHeader: string): Promise<{ buffer: Buffer; contentType: string }> {
+  async getArchivo(
+    jobId: string,
+    tipo: 'excel' | 'pdf',
+    authHeader: string,
+  ): Promise<{ buffer: Buffer; contentType: string }> {
     const response = await this.forward(`/jobs/${jobId}/${tipo}`, authHeader);
-    const contentType = response.headers.get('content-type') ?? 'application/octet-stream';
+    const contentType =
+      response.headers.get('content-type') ?? 'application/octet-stream';
     const buffer = Buffer.from(await response.arrayBuffer());
     return { buffer, contentType };
   }

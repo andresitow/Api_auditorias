@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useController, useFieldArray, useFormContext } from "react-hook-form";
 import type { DiagnosticoPayload } from "@/types/formularios";
 import { addFormOption } from "@/services/forms.service";
+import { Button } from "@/components/ui/button";
 
 const inputCls = "w-full bg-bg3 border border-border text-text rounded-md px-3 h-10 text-sm outline-none focus:border-blue";
 const labelCls = "block text-xs text-muted mb-1.5 font-medium";
@@ -105,9 +106,9 @@ export function StepAnchoBanda({
               {i === 0 ? "Oficina principal" : `Sede adicional ${i}`}
             </span>
             {i !== 0 && (
-              <button type="button" onClick={() => remove(i)} className="absolute top-3 right-3 text-muted text-xs hover:text-red">
+              <Button type="button" variant="linkMuted" onClick={() => remove(i)} className="absolute top-3 right-3 text-xs hover:text-red">
                 Quitar ✕
-              </button>
+              </Button>
             )}
             <div className="mb-3">
               <label className={labelCls}>
@@ -150,13 +151,9 @@ export function StepAnchoBanda({
         ))}
 
         {fields.length < 4 ? (
-          <button
-            type="button"
-            onClick={() => append({ principal: false, nombre: "", une: {}, claro: {} })}
-            className="h-9 px-3.5 rounded-md border border-orange bg-orange-bg text-orange text-[13px] hover:opacity-90"
-          >
+          <Button type="button" variant="warning" onClick={() => append({ principal: false, nombre: "", une: {}, claro: {} })}>
             + Agregar sede ({fields.length}/4)
-          </button>
+          </Button>
         ) : (
           <div className="text-[12px] text-muted">Límite de 4 sedes alcanzado.</div>
         )}

@@ -1,5 +1,6 @@
 import type { ChannelEventPayload, ChannelStatus } from "@/types";
 import { Sparkline } from "./Sparkline";
+import { Button } from "@/components/ui/button";
 
 const STATUS_CFG: Record<
   ChannelStatus,
@@ -151,12 +152,14 @@ export function ChannelCard({
             {nA} alarma{nA !== 1 ? "s" : ""}
             {nC > 0 && <span className="ml-0.5 text-[10px] bg-red-bg text-red rounded-md px-1.5">{nC}</span>}
           </button>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => onRemove(data.id)}
-            className="text-muted text-[11px] px-2 py-1 rounded hover:border hover:border-red hover:bg-red-bg hover:text-red"
+            className="hover:border hover:border-red hover:bg-red-bg hover:text-red"
           >
             ✕ quitar
-          </button>
+          </Button>
         </div>
       </div>
     </div>

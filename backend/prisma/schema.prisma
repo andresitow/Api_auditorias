@@ -123,7 +123,8 @@ model Auditoria {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  activities Activity[]
+  activities        Activity[]
+  deletedActivities DeletedActivity[]
 
   @@index([activa])
 }
@@ -167,7 +168,7 @@ model ActivityOccurrence {
   createdBy             String?
   updatedBy             String?
   createdAt             DateTime        @default(now())
-  updatedAt              DateTime       @updatedAt
+  updatedAt             DateTime        @updatedAt
 
   history    ActivityHistory[]
   evidencias OccurrenceEvidencia[]
@@ -209,14 +210,45 @@ model ActivityHistory {
   @@index([occurrenceId, createdAt(sort: Desc)])
 }
 
+/**
+ * Papelera de ocurrencias eliminadas del plan de trabajo: no es un soft-delete de
+ * ActivityOccurrence (eso obligaría a filtrar `eliminadaEn: null` en cada consulta
+ * existente — dashboard, exportes, notificaciones, generación de periodos, importador
+ * de Excel — un cambio de alto riesgo para lo que se pide). En cambio, al eliminar se
+ * guarda acá una foto de la ocurrencia (con el motivo que da el usuario y su historial
+ * ya congelado, porque ActivityHistory.occurrenceId tiene onDelete: Cascade y desaparece
+ * junto con la ocurrencia real) y luego SÍ se borra la ocurrencia de verdad, tal como ya
+ * hacía OccurrencesService.remove. Se purga sola pasados RETENTION_DAYS (ver
+ * DeletedActivitiesService) — no hay restaurar, el pedido fue solo "que quede ahí N días
+ * y después se borre".
+ */
+model DeletedActivity {
+  id                   String     @id @default(cuid())
+  auditoriaId          String
+  auditoria            Auditoria  @relation(fields: [auditoriaId], references: [id], onDelete: Cascade)
+  categoria            String
+  nombre               String
+  responsable          String
+  frecuencia           Frecuencia
+  periodo              String
+  fechaProgramada      DateTime
+  motivo               String
+  historial            Json
+  eliminadoPor         String?
+  eliminadoPorUsername String?
+  eliminadoEn          DateTime   @default(now())
+
+  @@index([auditoriaId, eliminadoEn(sort: Desc)])
+}
+
 model AuditoriaConfig {
-  id                     Int      @id @default(1)
-  diasAntes              Int[]    @default([1, 3, 7])
-  sonidoActivo           Boolean  @default(true)
-  semaforoVerdePct       Int      @default(90)
-  semaforoAmarilloPct    Int      @default(70)
-  notificacionesActivas  Boolean  @default(true)
-  teamsWebhookUrl        String?
-  notifEmails            String?
-  updatedAt              DateTime @updatedAt
+  id                    Int      @id @default(1)
+  diasAntes             Int[]    @default([1, 3, 7])
+  sonidoActivo          Boolean  @default(true)
+  semaforoVerdePct      Int      @default(90)
+  semaforoAmarilloPct   Int      @default(70)
+  notificacionesActivas Boolean  @default(true)
+  teamsWebhookUrl       String?
+  notifEmails           String?
+  updatedAt             DateTime @updatedAt
 }

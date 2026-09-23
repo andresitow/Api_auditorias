@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { ActivityOccurrence } from "@/types/auditorias";
 import { EstadoBadge } from "./EstadoBadge";
+import { Button } from "@/components/ui/button";
 
 function formatFecha(iso: string) {
   const [y, m, d] = iso.slice(0, 10).split("-");
@@ -19,16 +20,15 @@ export function OccurrencesTable({
   onReprogramar,
   onEditarFecha,
   onHistorial,
-  onEliminarActividad,
-  eliminando = false,
+  onEliminarActividad: onEliminarOcurrencia,
 }: {
   occurrences: ActivityOccurrence[];
   onChangeEstado: (o: ActivityOccurrence) => void;
   onReprogramar: (o: ActivityOccurrence) => void;
   onEditarFecha: (o: ActivityOccurrence) => void;
   onHistorial: (o: ActivityOccurrence) => void;
+  /** Abre el modal para eliminar solo esta ocurrencia puntual (esta fecha), no la actividad completa. */
   onEliminarActividad: (o: ActivityOccurrence) => void;
-  eliminando?: boolean;
 }) {
   const [today] = useState(() => new Date().toISOString().slice(0, 10));
 
@@ -84,25 +84,25 @@ export function OccurrencesTable({
                 </td>
                 <td className="border border-border px-2.5 py-1.5 whitespace-nowrap">
                   <div className="flex gap-2.5">
-                    <button onClick={() => onChangeEstado(o)} className="text-blue hover:underline">
+                    <Button variant="link" onClick={() => onChangeEstado(o)}>
                       Estado
-                    </button>
-                    <button onClick={() => onReprogramar(o)} className="text-orange hover:underline">
+                    </Button>
+                    <Button variant="linkWarning" onClick={() => onReprogramar(o)}>
                       Reprogramar
-                    </button>
-                    <button onClick={() => onEditarFecha(o)} className="text-blue hover:underline">
+                    </Button>
+                    <Button variant="link" onClick={() => onEditarFecha(o)}>
                       Editar fecha
-                    </button>
-                    <button onClick={() => onHistorial(o)} className="text-muted hover:underline">
+                    </Button>
+                    <Button variant="linkMuted" onClick={() => onHistorial(o)}>
                       Historial
-                    </button>
-                    <button
-                      onClick={() => onEliminarActividad(o)}
-                      disabled={eliminando}
-                      className="text-red hover:underline disabled:opacity-50 disabled:pointer-events-none"
+                    </Button>
+                    <Button
+                      variant="linkDestructive"
+                      onClick={() => onEliminarOcurrencia(o)}
+                      title="Elimina solo esta fecha; las demás ocurrencias de la actividad no se ven afectadas"
                     >
-                      Eliminar
-                    </button>
+                      Eliminar fecha
+                    </Button>
                   </div>
                 </td>
               </tr>

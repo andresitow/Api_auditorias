@@ -29,11 +29,22 @@ export class ChannelsService {
   }
 
   async createChannelRow(dto: CreateChannelDto): Promise<ChannelInfo> {
-    const config = await this.prisma.monitorConfig.findUnique({ where: { id: 1 } });
-    const row = await this.prisma.channel.create({
-      data: { name: dto.name, host: dto.host, umbralMs: config?.umbralMs ?? 100 },
+    const config = await this.prisma.monitorConfig.findUnique({
+      where: { id: 1 },
     });
-    return { id: row.id, nombre: row.name, host: row.host, umbral: row.umbralMs };
+    const row = await this.prisma.channel.create({
+      data: {
+        name: dto.name,
+        host: dto.host,
+        umbralMs: config?.umbralMs ?? 100,
+      },
+    });
+    return {
+      id: row.id,
+      nombre: row.name,
+      host: row.host,
+      umbral: row.umbralMs,
+    };
   }
 
   async deleteChannelRow(id: string) {
@@ -41,7 +52,11 @@ export class ChannelsService {
   }
 
   async getConfig() {
-    return this.prisma.monitorConfig.upsert({ where: { id: 1 }, update: {}, create: { id: 1 } });
+    return this.prisma.monitorConfig.upsert({
+      where: { id: 1 },
+      update: {},
+      create: { id: 1 },
+    });
   }
 
   async updateConfig(dto: UpdateConfigDto) {
@@ -58,14 +73,19 @@ export class ChannelsService {
   }
 
   broadcast(payload: ChannelEventPayload) {
-    this.events$.next({ data: payload } as MessageEvent);
+    this.events$.next({ data: payload });
   }
 
   broadcastRemoved(id: string) {
-    this.events$.next({ data: { accion: 'quitar', id } } as MessageEvent);
+    this.events$.next({ data: { accion: 'quitar', id } });
   }
 
-  async persistSample(channelId: string, latencyMs: number | null, lost: boolean, raw: string) {
+  async persistSample(
+    channelId: string,
+    latencyMs: number | null,
+    lost: boolean,
+    raw: string,
+  ) {
     await this.prisma.pingSample
       .create({ data: { channelId, latencyMs, lost, rawOutput: raw } })
       .catch(() => undefined);
@@ -81,7 +101,17 @@ export class ChannelsService {
     durationSec?: number,
   ) {
     await this.prisma.alertEvent
-      .create({ data: { channelId, type, severity, message, startedAt, endedAt, durationSec } })
+      .create({
+        data: {
+          channelId,
+          type,
+          severity,
+          message,
+          startedAt,
+          endedAt,
+          durationSec,
+        },
+      })
       .catch(() => undefined);
   }
 

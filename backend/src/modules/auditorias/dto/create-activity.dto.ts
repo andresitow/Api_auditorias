@@ -1,5 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateIf } from 'class-validator';
+import {
+  IsBoolean,
+  IsDateString,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  ValidateIf,
+} from 'class-validator';
 import { Frecuencia } from '@prisma/client';
 
 export const CATEGORIAS_AUDITORIA = [
@@ -12,6 +21,15 @@ export const CATEGORIAS_AUDITORIA = [
   'Servidores',
   'Otros',
 ] as const;
+
+/** Orden alfabético, pero dejando "Otros" siempre al final (es el cajón de sastre, no
+ * una categoría temática): lo usan el filtro de FiltersBar.tsx y el gráfico por
+ * categoría del dashboard. */
+export function compararCategorias(a: string, b: string): number {
+  if (a === 'Otros') return b === 'Otros' ? 0 : 1;
+  if (b === 'Otros') return -1;
+  return a.localeCompare(b);
+}
 
 export class CreateActivityDto {
   @ApiProperty({ enum: CATEGORIAS_AUDITORIA })
@@ -48,7 +66,10 @@ export class CreateActivityDto {
   @IsEnum(Frecuencia)
   frecuencia: Frecuencia;
 
-  @ApiPropertyOptional({ description: 'Requerida cuando frecuencia = UNICA', example: '2026-09-15' })
+  @ApiPropertyOptional({
+    description: 'Requerida cuando frecuencia = UNICA',
+    example: '2026-09-15',
+  })
   @ValidateIf((o: CreateActivityDto) => o.frecuencia === Frecuencia.UNICA)
   @IsDateString()
   @IsNotEmpty()

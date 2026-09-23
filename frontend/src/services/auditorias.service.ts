@@ -9,6 +9,7 @@ import type {
   CategoriaBreakdown,
   CreateActivityPayload,
   CreateAuditoriaPayload,
+  DeletedActivity,
   EditFechaOccurrencePayload,
   GenerateYearResult,
   ImportPlanExcelResult,
@@ -123,6 +124,18 @@ export function editOccurrenceFecha(auditoriaId: string, id: string, payload: Ed
 
 export function generateYear(auditoriaId: string, anio: number) {
   return api.post<GenerateYearResult>(`/auditorias/${auditoriaId}/generate-year${toQuery({ anio })}`).then((r) => r.data);
+}
+
+export function deleteOccurrence(auditoriaId: string, id: string, motivo: string) {
+  return api
+    .delete<{ ok: boolean; actividadEliminada: boolean }>(`/auditorias/${auditoriaId}/occurrences/${id}`, { data: { motivo } })
+    .then((r) => r.data);
+}
+
+// --- Papelera de actividades eliminadas ---
+
+export function listDeletedActivities(auditoriaId: string) {
+  return api.get<DeletedActivity[]>(`/auditorias/${auditoriaId}/deleted-activities`).then((r) => r.data);
 }
 
 export function getOccurrenceHistory(auditoriaId: string, id: string) {

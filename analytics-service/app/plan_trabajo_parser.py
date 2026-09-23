@@ -98,6 +98,101 @@ COLUMNAS_POR_MES = (WEEK_LAST - WEEK_FIRST + 1) // MESES_EN_ANIO  # 48 / 12 = 4
 # total real de celdas "E" del Excel.
 ESTADO_PRIORIDAD: dict[str, int] = {"EJECUTADO": 0, "REPROGRAMADO": 1, "NO_REALIZADO": 2, "PLANEADO": 3}
 
+# Las 8 categorías genéricas de negocio, usadas en toda la app (combo de creación manual
+# en ActivityFormModal.tsx, filtro en FiltersBar.tsx, gráfico del dashboard). Debe
+# reflejar exactamente CATEGORIAS_AUDITORIA en
+# backend/src/modules/auditorias/dto/create-activity.dto.ts.
+CATEGORIAS_AUDITORIA = (
+    "Sensibilización y formación SI",
+    "Riesgos y activos de la información",
+    "Control de Accesos y contraseñas",
+    "Seguimientos como puntos de control",
+    "Mantenimiento de la infraestructura",
+    "Switches",
+    "Servidores",
+    "Otros",
+)
+
+# El plan nativo "PLAN TRABAJO ANUAL SIG" no tiene columna de categoría genérica: sus
+# encabezados de sección A:D (ver find_single_row_abcd_merges) agrupan por
+# dispositivo/proyecto puntual ("Data Center", "UPS", "Planta Eléctrica Artik"...), no
+# por las 8 categorías de negocio. Sin este mapeo, cada sección de una sola actividad
+# terminaba creando su propia "categoría" de un solo elemento, inundando el filtro del
+# frontend (FiltersBar.tsx) con decenas de opciones en vez de las 8 que sí usa el resto
+# de la app. Las claves van normalizadas con normalizar_para_comparar(); una sección
+# nueva que no aparezca acá cae en "Otros" (ver resolver_categoria) hasta que se agregue
+# explícitamente aquí.
+MAPEO_CATEGORIA_SECCION: dict[str, str] = {
+    "acces point cisco meraki": "Mantenimiento de la infraestructura",
+    "actualización servidores clientes ( maquina virtuales )": "Servidores",
+    "actualización servidores internos maquina virtuales": "Servidores",
+    "actualizar inducción y reinducción con las nuevas politicas de ciberseguridad.(nist)": "Sensibilización y formación SI",
+    "aire acondicionado": "Mantenimiento de la infraestructura",
+    "biometricos e imanes de acceso a oficinas, centro de datos y bodegas lector facial": "Control de Accesos y contraseñas",
+    "certificados tls sincoerp sincoacademic": "Mantenimiento de la infraestructura",
+    "comunicados para que los clientes revisen su infraestructura clientes externos": "Otros",
+    "control de accesos biometricos(backups)": "Control de Accesos y contraseñas",
+    "data center": "Mantenimiento de la infraestructura",
+    "diligenciar los indicadores de gestión del si": "Seguimientos como puntos de control",
+    "envio de discos a backups": "Seguimientos como puntos de control",
+    "equipos portatíles (fisico y logico)": "Mantenimiento de la infraestructura",
+    "implementación nist": "Riesgos y activos de la información",
+    "nvr 81-11 / camaras de seguridad": "Control de Accesos y contraseñas",
+    "planta electrica artik": "Mantenimiento de la infraestructura",
+    "planta electrica edificio 8111": "Mantenimiento de la infraestructura",
+    "proyecto activación mfa clientes": "Control de Accesos y contraseñas",
+    "pruebas de vulnerabilidad externa": "Riesgos y activos de la información",
+    "pruebas de vulnerabilidad interna": "Riesgos y activos de la información",
+    "punto de control licencias de usuarios": "Seguimientos como puntos de control",
+    "punto de control traslados de equipos y proveedores": "Seguimientos como puntos de control",
+    "punto de control fisicos y consumibles": "Seguimientos como puntos de control",
+    "punto de control de activos fisicos": "Seguimientos como puntos de control",
+    "revisión adminsitración y accesos erp": "Control de Accesos y contraseñas",
+    "revisión mfa activo para todos los usuarios (erp y microsoft 365)": "Control de Accesos y contraseñas",
+    "seguimiento accesos usuarios de alto privilegiados del directorio activo.": "Control de Accesos y contraseñas",
+    "seguimiento activos de información infraestructura, ciberseguridad y bases de datos": "Riesgos y activos de la información",
+    "seguimiento cronograma nist": "Riesgos y activos de la información",
+    "seguimiento plan de acción prueba de vulnerabilidad externa": "Riesgos y activos de la información",
+    "seguimiento plan de acción prueba de vulnerabilidad interna": "Riesgos y activos de la información",
+    "seguimiento al drp ( cronograma y evidencias de pruebas )": "Seguimientos como puntos de control",
+    "seguimiento cronograma de mantenimiento": "Seguimientos como puntos de control",
+    "seguimiento de copias de seguridad": "Seguimientos como puntos de control",
+    "seguimiento de matriz control de accesos de usuarios de infraestructura y ciberseguridad": "Control de Accesos y contraseñas",
+    "seguimiento incidentes de seguridad de la información": "Riesgos y activos de la información",
+    "seguimiento procedimiento clasificación , etiquetado de la infromación (sharepoint)": "Riesgos y activos de la información",
+    "seguimiento usuarios activos e inactivos (retiros, ingresos, licencias ) en el da y microsoft 365": "Control de Accesos y contraseñas",
+    "seguimiento y control elimnación de clientes en bases de datos, que finalizan contrato.": "Seguimientos como puntos de control",
+    "seguimiento y control restauración de backups (discos)": "Seguimientos como puntos de control",
+    "seguimiento y control proyecto huella de carbono": "Otros",
+    "seguimientos riesgos de infraestructura, ciberseguridad y bases de datos": "Riesgos y activos de la información",
+    "semana de la seguridad de la información, ciberseguridad y protección de datos personales.": "Sensibilización y formación SI",
+    "servidores cliente (host) lógico": "Servidores",
+    "servidores clientes (host) fisico y update firmaware": "Servidores",
+    "servidores interno fisico": "Servidores",
+    "servidores internos logico, update firmaware , update windows": "Servidores",
+    "switch mesas usuarios": "Switches",
+    "switch tp-link fisico": "Switches",
+    "switches cisco red mantenimiento fisico": "Switches",
+    "switches internos servidores 4 en 81-11 y 6 en artik": "Switches",
+    "tableros de distribución electrico y tomas electricas": "Mantenimiento de la infraestructura",
+    "test de ios clientes con servicio externo": "Riesgos y activos de la información",
+    "ups": "Mantenimiento de la infraestructura",
+    "validar accesos del personal en vacaciones y/o licencias": "Control de Accesos y contraseñas",
+    "validar politica de contraseña de acuerdo al procedimiento gestión de usuarios y contraseñasde (microsoft 365) y directorio activo": "Control de Accesos y contraseñas",
+    "verificar la autorización del equipo de bases de datos el acceso a las bases de datos de los clientes en la torre de control": "Control de Accesos y contraseñas",
+}
+
+
+def resolver_categoria(texto: str) -> str:
+    """Lleva cualquier texto de categoría (columna del plan plantilla o encabezado de
+    sección del plan nativo) a una de las 8 CATEGORIAS_AUDITORIA. Ver
+    MAPEO_CATEGORIA_SECCION arriba para el porqué."""
+    clave = normalizar_para_comparar(texto)
+    for canonica in CATEGORIAS_AUDITORIA:
+        if normalizar_para_comparar(canonica) == clave:
+            return canonica
+    return MAPEO_CATEGORIA_SECCION.get(clave, "Otros")
+
 
 @dataclass
 class FilaError:
@@ -380,7 +475,7 @@ def _parse_plantilla(ws: Worksheet) -> ParseResult:
             continue
 
         _validar_y_agregar(
-            result, row, categoria, nombre, responsable, frecuencia_raw, descripcion, observacion, activa_raw, fecha_raw
+            result, row, resolver_categoria(categoria), nombre, responsable, frecuencia_raw, descripcion, observacion, activa_raw, fecha_raw
         )
     return result
 
@@ -396,7 +491,7 @@ def _parse_nativo(ws: Worksheet) -> tuple[ParseResult, bool]:
         if row in header_rows:
             texto = cell_text(ws.cell(row, 1).value)
             if texto and not is_footer_row(normalizar_para_comparar(texto)):
-                categoria_actual = normalizar_espacios(texto)
+                categoria_actual = resolver_categoria(texto)
                 hubo_categorias = True
             continue  # una fila de encabezado nunca es, en sí misma, una actividad
 

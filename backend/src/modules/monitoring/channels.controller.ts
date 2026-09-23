@@ -42,7 +42,8 @@ export class ChannelsController {
   async updateConfig(@Body() dto: UpdateConfigDto) {
     const cfg = await this.channelsService.updateConfig(dto);
     this.scheduler.applyConfigUpdate(dto);
-    if (dto.umbralMs !== undefined) await this.channelsService.setUmbralOnAllChannels(dto.umbralMs);
+    if (dto.umbralMs !== undefined)
+      await this.channelsService.setUmbralOnAllChannels(dto.umbralMs);
     for (const info of this.channelsService.getAll()) {
       const snap = this.scheduler.getSnapshot(info, 'config_update');
       if (snap) this.channelsService.broadcast(snap);
@@ -97,7 +98,7 @@ export class ChannelsController {
       .getAll()
       .map((info) => this.scheduler.getSnapshot(info, 'snap'))
       .filter((snap): snap is NonNullable<typeof snap> => snap !== null)
-      .map((data) => ({ data }) as MessageEvent);
+      .map((data) => ({ data }));
 
     return concat(from(snapshots), this.channelsService.events$);
   }

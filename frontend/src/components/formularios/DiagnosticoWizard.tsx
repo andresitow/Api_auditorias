@@ -7,6 +7,7 @@ import type { DiagnosticoPayload, DiagnosticoResumen, FormOptionsResponse, Ofici
 import { createDiagnostico, getFormOptions } from "@/services/forms.service";
 import { ANTIVIRUS_DEFAULT, FIREWALL_DEFAULT, ISP_DEFAULT } from "@/lib/diagnosticoTexts";
 import { WizardProgress } from "./WizardProgress";
+import { Button } from "@/components/ui/button";
 import { StepGeneral } from "./steps/StepGeneral";
 import { StepSistemaOperativo } from "./steps/StepSistemaOperativo";
 import { StepNavegadores } from "./steps/StepNavegadores";
@@ -148,29 +149,20 @@ export function DiagnosticoWizard() {
 
         <div className="flex justify-between mt-5">
           {stepIndex > 0 ? (
-            <button type="button" onClick={goBack} className="text-muted hover:text-text text-sm px-3 py-2">
+            <Button type="button" variant="ghost" onClick={goBack}>
               ← Atrás
-            </button>
+            </Button>
           ) : (
             <span />
           )}
           {step === "revision" ? (
-            <button
-              type="button"
-              disabled={submitting}
-              onClick={onFinish}
-              className="h-[38px] px-4 rounded-md border border-[#2ea043] bg-[#1a3a2a] text-green text-sm hover:bg-[#1f4a33] disabled:opacity-60"
-            >
+            <Button type="button" disabled={submitting} onClick={onFinish}>
               {submitting ? "Generando…" : "Generar informe"}
-            </button>
+            </Button>
           ) : (
-            <button
-              type="button"
-              onClick={goNext}
-              className="h-[38px] px-4 rounded-md border border-[#2ea043] bg-[#1a3a2a] text-green text-sm hover:bg-[#1f4a33]"
-            >
+            <Button type="button" onClick={goNext}>
               Siguiente
-            </button>
+            </Button>
           )}
         </div>
       </form>

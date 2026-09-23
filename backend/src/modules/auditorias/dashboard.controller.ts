@@ -11,8 +11,16 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('kpis')
-  kpis(@Param('auditoriaId') auditoriaId: string, @Query('anio') anio?: string, @Query('categoria') categoria?: string) {
-    return this.dashboardService.kpis(auditoriaId, anio ? Number(anio) : new Date().getFullYear(), categoria);
+  kpis(
+    @Param('auditoriaId') auditoriaId: string,
+    @Query('anio') anio?: string,
+    @Query('categoria') categoria?: string,
+  ) {
+    return this.dashboardService.kpis(
+      auditoriaId,
+      anio ? Number(anio) : new Date().getFullYear(),
+      categoria,
+    );
   }
 
   @Get('series')
@@ -22,13 +30,25 @@ export class DashboardController {
     @Query('groupBy') groupBy?: 'mes' | 'bimestre' | 'trimestre',
     @Query('categoria') categoria?: string,
   ) {
-    const normalizedGroupBy = groupBy === 'trimestre' || groupBy === 'bimestre' ? groupBy : 'mes';
-    return this.dashboardService.series(auditoriaId, anio ? Number(anio) : new Date().getFullYear(), normalizedGroupBy, categoria);
+    const normalizedGroupBy =
+      groupBy === 'trimestre' || groupBy === 'bimestre' ? groupBy : 'mes';
+    return this.dashboardService.series(
+      auditoriaId,
+      anio ? Number(anio) : new Date().getFullYear(),
+      normalizedGroupBy,
+      categoria,
+    );
   }
 
   @Get('por-categoria')
-  porCategoria(@Param('auditoriaId') auditoriaId: string, @Query('anio') anio?: string) {
-    return this.dashboardService.porCategoria(auditoriaId, anio ? Number(anio) : new Date().getFullYear());
+  porCategoria(
+    @Param('auditoriaId') auditoriaId: string,
+    @Query('anio') anio?: string,
+  ) {
+    return this.dashboardService.porCategoria(
+      auditoriaId,
+      anio ? Number(anio) : new Date().getFullYear(),
+    );
   }
 
   @Get('alertas')

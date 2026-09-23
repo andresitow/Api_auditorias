@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+
 export interface LogLine {
   hora: string;
   canal: string;
@@ -17,12 +19,9 @@ export function AlertLog({ lines, onClear }: { lines: LogLine[]; onClear: () => 
     <div>
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-semibold text-muted uppercase tracking-wide">Registro de alarmas</span>
-        <button
-          onClick={onClear}
-          className="bg-transparent border border-border text-muted rounded-md px-2.5 py-1 text-[11px] hover:border-red hover:text-red"
-        >
+        <Button variant="outline" size="sm" onClick={onClear} className="hover:border-red hover:text-red">
           Limpiar
-        </button>
+        </Button>
       </div>
       <div className="bg-bg2 border border-border rounded-lg px-3.5 py-2.5 h-[380px] overflow-y-auto font-mono text-xs">
         {lines.length === 0 && <div className="text-muted py-2">Sin eventos todavía.</div>}

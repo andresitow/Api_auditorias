@@ -1,6 +1,7 @@
 "use client";
 
 import type { EstadoActividad, Frecuencia } from "@/types/auditorias";
+import { Button } from "@/components/ui/button";
 
 export interface FiltersState {
   categoria: string;
@@ -85,9 +86,9 @@ export function FiltersBar({
         className={`${inputCls} w-40`}
       />
       {hasFilters && (
-        <button onClick={() => onChange(EMPTY_FILTERS)} className="text-muted hover:text-text text-[12.5px] px-2">
+        <Button variant="ghost" size="sm" onClick={() => onChange(EMPTY_FILTERS)}>
           Limpiar filtros
-        </button>
+        </Button>
       )}
     </div>
   );

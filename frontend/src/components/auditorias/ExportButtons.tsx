@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { exportExcel, exportPdf } from "@/services/auditorias.service";
+import { Button } from "@/components/ui/button";
 
 export function ExportButtons({
   auditoriaId,
@@ -28,20 +29,12 @@ export function ExportButtons({
 
   return (
     <div className="flex gap-2">
-      <button
-        onClick={() => handle("excel")}
-        disabled={loading !== null}
-        className="h-9 px-3.5 rounded-md border border-border bg-bg3 text-text text-[13px] hover:border-green hover:text-green disabled:opacity-60"
-      >
+      <Button variant="outline" onClick={() => handle("excel")} disabled={loading !== null} className="hover:border-green hover:text-green">
         {loading === "excel" ? "Generando…" : "Excel"}
-      </button>
-      <button
-        onClick={() => handle("pdf")}
-        disabled={loading !== null}
-        className="h-9 px-3.5 rounded-md border border-border bg-bg3 text-text text-[13px] hover:border-red hover:text-red disabled:opacity-60"
-      >
+      </Button>
+      <Button variant="outline" onClick={() => handle("pdf")} disabled={loading !== null} className="hover:border-red hover:text-red">
         {loading === "pdf" ? "Generando…" : "PDF"}
-      </button>
+      </Button>
     </div>
   );
 }

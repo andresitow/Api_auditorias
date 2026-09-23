@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateDiagnosticFormDto } from './dto/create-diagnostic-form.dto';
-import { CreateFormOptionDto, FormOptionCategory } from './dto/create-form-option.dto';
+import {
+  CreateFormOptionDto,
+  FormOptionCategory,
+} from './dto/create-form-option.dto';
 
 @Injectable()
 export class FormsService {
@@ -34,7 +37,9 @@ export class FormsService {
   }
 
   listDiagnostics() {
-    return this.prisma.diagnosticForm.findMany({ orderBy: { createdAt: 'desc' } });
+    return this.prisma.diagnosticForm.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   getDiagnostic(id: string) {
@@ -43,7 +48,11 @@ export class FormsService {
 
   async listOptions(): Promise<Record<FormOptionCategory, string[]>> {
     const rows = await this.prisma.formOption.findMany();
-    const grouped: Record<FormOptionCategory, string[]> = { isp: [], firewall: [], antivirus: [] };
+    const grouped: Record<FormOptionCategory, string[]> = {
+      isp: [],
+      firewall: [],
+      antivirus: [],
+    };
     for (const row of rows) {
       grouped[row.category as FormOptionCategory]?.push(row.value);
     }

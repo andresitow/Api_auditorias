@@ -1,5 +1,14 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateIf } from 'class-validator';
+import {
+  IsBoolean,
+  IsDateString,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  ValidateIf,
+} from 'class-validator';
 import { Frecuencia } from '@prisma/client';
 
 export class UpdateActivityDto {
@@ -41,7 +50,10 @@ export class UpdateActivityDto {
   @IsEnum(Frecuencia)
   frecuencia?: Frecuencia;
 
-  @ApiPropertyOptional({ description: 'Requerida cuando frecuencia = UNICA', example: '2026-09-15' })
+  @ApiPropertyOptional({
+    description: 'Requerida cuando frecuencia = UNICA',
+    example: '2026-09-15',
+  })
   @ValidateIf((o: UpdateActivityDto) => o.frecuencia === Frecuencia.UNICA)
   @IsDateString()
   @IsNotEmpty()

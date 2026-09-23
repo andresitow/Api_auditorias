@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { FormsService } from './forms.service';
@@ -13,7 +21,10 @@ export class FormsController {
   constructor(private readonly formsService: FormsService) {}
 
   @Post('diagnosticos')
-  create(@Body() dto: CreateDiagnosticFormDto, @Req() req: { user: { sub: string } }) {
+  create(
+    @Body() dto: CreateDiagnosticFormDto,
+    @Req() req: { user: { sub: string } },
+  ) {
     return this.formsService.createDiagnostic(dto, req.user.sub);
   }
 

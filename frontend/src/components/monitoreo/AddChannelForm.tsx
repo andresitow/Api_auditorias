@@ -2,6 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { createChannel } from "@/services/channels.service";
+import { Button } from "@/components/ui/button";
 
 interface FormValues {
   nombre: string;
@@ -35,13 +36,9 @@ export function AddChannelForm() {
         className="w-[220px] bg-bg3 border border-border text-text rounded-md px-2.5 h-[34px] text-[13px] outline-none focus:border-blue"
         {...register("host", { required: true, maxLength: 120 })}
       />
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="h-[34px] px-3.5 rounded-md border border-[#2ea043] bg-[#1a3a2a] text-green text-[13px] hover:bg-[#1f4a33] disabled:opacity-60"
-      >
+      <Button type="submit" disabled={isSubmitting}>
         + Agregar canal
-      </button>
+      </Button>
     </form>
   );
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { login } from "@/services/auth.service";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
 
 interface FormValues {
   username: string;
@@ -66,13 +67,9 @@ export default function LoginPage() {
               {...register("password", { required: true })}
             />
           </div>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="mt-1.5 h-[42px] rounded-full bg-nav-bg text-sm font-medium tracking-[-0.008em] text-nav-ink transition-opacity hover:opacity-90 disabled:opacity-60"
-          >
+          <Button type="submit" disabled={isSubmitting} className="mt-1.5 w-full">
             {isSubmitting ? "Entrando…" : "Entrar"}
-          </button>
+          </Button>
           {error && <div className="mt-1 text-[12.5px] text-red">Usuario o contraseña incorrectos.</div>}
         </form>
       </div>

@@ -12,6 +12,8 @@ export class CreateChannelDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(120)
-  @Matches(/^[a-zA-Z0-9.-]+$/, { message: 'Host inválido: solo letras, números, puntos y guiones' })
+  @Matches(/^[a-zA-Z0-9.-]+$/, {
+    message: 'Host inválido: solo letras, números, puntos y guiones',
+  })
   host: string;
 }

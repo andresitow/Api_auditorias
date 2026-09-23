@@ -46,7 +46,10 @@ function weeksOfYear(anio: number): { week: number; fecha: Date }[] {
  * A_DEMANDA/CUANDO_SE_REQUIERA no se pre-generan: se registran manualmente. UNICA
  * tampoco: su única ocurrencia se crea explícitamente con la fecha programada al
  * crear la actividad (ver ActivitiesService.create). */
-export function periodsForYear(frecuencia: Frecuencia, anio: number): PeriodDef[] {
+export function periodsForYear(
+  frecuencia: Frecuencia,
+  anio: number,
+): PeriodDef[] {
   switch (frecuencia) {
     case Frecuencia.UNICA:
       return [];
@@ -76,7 +79,12 @@ export function periodsForYear(frecuencia: Frecuencia, anio: number): PeriodDef[
         fechaProgramada: lastDayOfSemester(anio, s),
       }));
     case Frecuencia.ANUAL:
-      return [{ periodo: `${anio}`, fechaProgramada: new Date(Date.UTC(anio, 11, 31)) }];
+      return [
+        {
+          periodo: `${anio}`,
+          fechaProgramada: new Date(Date.UTC(anio, 11, 31)),
+        },
+      ];
     case Frecuencia.A_DEMANDA:
     case Frecuencia.CUANDO_SE_REQUIERA:
       return [];
@@ -88,17 +96,31 @@ export function periodsForYear(frecuencia: Frecuencia, anio: number): PeriodDef[
 /** Etiqueta legible de un periodo para UI/reportes, ej. "Marzo 2026", "Q1 2026". */
 export function labelPeriodo(periodo: string): string {
   const meses = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre',
   ];
   const mensualMatch = /^(\d{4})-(\d{2})$/.exec(periodo);
-  if (mensualMatch) return `${meses[Number(mensualMatch[2]) - 1]} ${mensualMatch[1]}`;
+  if (mensualMatch)
+    return `${meses[Number(mensualMatch[2]) - 1]} ${mensualMatch[1]}`;
   const bimensualMatch = /^(\d{4})-B(\d)$/.exec(periodo);
-  if (bimensualMatch) return `Bimestre ${bimensualMatch[2]} ${bimensualMatch[1]}`;
+  if (bimensualMatch)
+    return `Bimestre ${bimensualMatch[2]} ${bimensualMatch[1]}`;
   const trimestralMatch = /^(\d{4})-Q(\d)$/.exec(periodo);
-  if (trimestralMatch) return `Trimestre ${trimestralMatch[2]} ${trimestralMatch[1]}`;
+  if (trimestralMatch)
+    return `Trimestre ${trimestralMatch[2]} ${trimestralMatch[1]}`;
   const semestralMatch = /^(\d{4})-S(\d)$/.exec(periodo);
-  if (semestralMatch) return `Semestre ${semestralMatch[2]} ${semestralMatch[1]}`;
+  if (semestralMatch)
+    return `Semestre ${semestralMatch[2]} ${semestralMatch[1]}`;
   const semanalMatch = /^(\d{4})-W(\d{2})$/.exec(periodo);
   if (semanalMatch) return `Semana ${semanalMatch[2]} ${semanalMatch[1]}`;
   return periodo;

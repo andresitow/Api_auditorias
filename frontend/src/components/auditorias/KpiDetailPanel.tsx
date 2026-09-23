@@ -5,6 +5,7 @@ import Link from "next/link";
 import { listOccurrences } from "@/services/auditorias.service";
 import type { ActivityOccurrence, EstadoActividad } from "@/types/auditorias";
 import { EstadoBadge } from "./EstadoBadge";
+import { Button } from "@/components/ui/button";
 
 export type KpiFilterKind = "total" | "PLANEADO" | "EJECUTADO" | "REPROGRAMADO" | "NO_REALIZADO" | "vencidas" | "proximas";
 
@@ -56,9 +57,9 @@ export function KpiDetailPanel({
         <span className={`inline-flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full font-medium ${filter.badgeClass}`}>
           {items ? items.length : "…"} {filter.label}
         </span>
-        <button onClick={onClose} className="text-muted hover:text-text text-[12px] shrink-0">
+        <Button variant="ghost" size="sm" onClick={onClose} className="shrink-0">
           Cerrar ✕
-        </button>
+        </Button>
       </div>
       {items === null ? (
         <div className="text-[12.5px] text-muted py-2">Cargando…</div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { getAuditoriaConfig, updateAuditoriaConfig, testAuditoriaNotification } from "@/services/auditorias.service";
 import type { AuditoriaConfig, NotificationTestResult } from "@/types/auditorias";
+import { Button } from "@/components/ui/button";
 
 interface FormValues {
   notificacionesActivas: boolean;
@@ -112,21 +113,12 @@ export default function NotificacionesConfigPage() {
       </div>
 
       <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="h-9 px-4 rounded-md border border-blue bg-blue-bg text-blue text-[13px] hover:brightness-110 disabled:opacity-60"
-        >
+        <Button type="submit" variant="info" size="lg" disabled={isSubmitting}>
           Guardar
-        </button>
-        <button
-          type="button"
-          onClick={onTest}
-          disabled={testing}
-          className="h-9 px-4 rounded-md border border-border text-text text-[13px] hover:bg-bg3 disabled:opacity-60"
-        >
+        </Button>
+        <Button type="button" variant="outline" size="lg" onClick={onTest} disabled={testing}>
           {testing ? "Enviando…" : "Enviar prueba"}
-        </button>
+        </Button>
         {saved && <span className="text-[12px] text-green">Guardado ✓</span>}
       </div>
 

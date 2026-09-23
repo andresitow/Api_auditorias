@@ -4,7 +4,11 @@ import { randomUUID } from 'crypto';
 import { existsSync, mkdirSync } from 'fs';
 import { extname, join } from 'path';
 
-export const EVIDENCIA_IMAGENES_DIR = join(process.cwd(), 'uploads', 'evidencias');
+export const EVIDENCIA_IMAGENES_DIR = join(
+  process.cwd(),
+  'uploads',
+  'evidencias',
+);
 export const EVIDENCIA_IMAGENES_URL_PREFIX = '/uploads/evidencias';
 
 export const EVIDENCIAS_MAX_COUNT = 5;
@@ -36,14 +40,26 @@ export const evidenciaImagenMulterOptions = {
   storage: diskStorage({
     destination: EVIDENCIA_IMAGENES_DIR,
     filename: (_req, file, callback) => {
-      callback(null, `${randomUUID()}${extname(file.originalname).toLowerCase()}`);
+      callback(
+        null,
+        `${randomUUID()}${extname(file.originalname).toLowerCase()}`,
+      );
     },
   }),
-  fileFilter: (_req: unknown, file: Express.Multer.File, callback: (error: Error | null, accept: boolean) => void) => {
+  fileFilter: (
+    _req: unknown,
+    file: Express.Multer.File,
+    callback: (error: Error | null, accept: boolean) => void,
+  ) => {
     const ext = extname(file.originalname).toLowerCase();
-    if (!ALLOWED_MIME_TYPES.includes(file.mimetype) && !ALLOWED_EXTENSIONS.includes(ext)) {
+    if (
+      !ALLOWED_MIME_TYPES.includes(file.mimetype) &&
+      !ALLOWED_EXTENSIONS.includes(ext)
+    ) {
       callback(
-        new BadRequestException('La evidencia debe ser una imagen (JPG, PNG, WEBP, GIF), un PDF, un correo (EML, MSG), un Excel (XLS, XLSX) o un Word (DOC, DOCX)'),
+        new BadRequestException(
+          'La evidencia debe ser una imagen (JPG, PNG, WEBP, GIF), un PDF, un correo (EML, MSG), un Excel (XLS, XLSX) o un Word (DOC, DOCX)',
+        ),
         false,
       );
       return;

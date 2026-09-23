@@ -13,7 +13,11 @@ import { AuditoriasModule } from './modules/auditorias/auditorias.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, load: [configuration], validate: validateEnv }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+      validate: validateEnv,
+    }),
     ThrottlerModule.forRoot({ throttlers: [{ ttl: 60_000, limit: 30 }] }),
     ScheduleModule.forRoot(),
     PrismaModule,

@@ -1,10 +1,18 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsDateString,
+  IsEnum,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { EstadoActividad, Frecuencia } from '@prisma/client';
 
 export class FilterOccurrencesDto {
-  @ApiPropertyOptional({ description: 'Año a consultar (por defecto el año actual)' })
+  @ApiPropertyOptional({
+    description: 'Año a consultar (por defecto el año actual)',
+  })
   @IsOptional()
   @Type(() => Number)
   anio?: number;
@@ -49,7 +57,9 @@ export class FilterOccurrencesDto {
   @IsString()
   q?: string;
 
-  @ApiPropertyOptional({ description: 'Solo actividades vencidas (planeadas con fecha pasada)' })
+  @ApiPropertyOptional({
+    description: 'Solo actividades vencidas (planeadas con fecha pasada)',
+  })
   @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()

@@ -17,6 +17,8 @@ import { AuditoriaConfigService } from './config.service';
 import { NotificationsService } from './notifications.service';
 import { PlanSiguienteAnioController } from './plan-siguiente-anio.controller';
 import { PlanSiguienteAnioService } from './plan-siguiente-anio.service';
+import { DeletedActivitiesController } from './deleted-activities.controller';
+import { DeletedActivitiesService } from './deleted-activities.service';
 
 @Module({
   controllers: [
@@ -27,6 +29,7 @@ import { PlanSiguienteAnioService } from './plan-siguiente-anio.service';
     DashboardController,
     ExportController,
     PlanSiguienteAnioController,
+    DeletedActivitiesController,
   ],
   providers: [
     AuditoriasCatalogService,
@@ -40,6 +43,7 @@ import { PlanSiguienteAnioService } from './plan-siguiente-anio.service';
     AuditoriaConfigService,
     NotificationsService,
     PlanSiguienteAnioService,
+    DeletedActivitiesService,
   ],
 })
 export class AuditoriasModule {}

@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { importPlanExcel, descargarPlantillaImportExcel } from "@/services/auditorias.service";
 import type { ImportPlanExcelResult } from "@/types/auditorias";
+import { Button } from "@/components/ui/button";
 
 /** Sube un .xlsx (misma plantilla que descargarPlantillaImportExcel) y sincroniza el
  * plan de trabajo con su contenido: por cada fila crea la actividad si no existe (match
@@ -49,22 +50,18 @@ export function ImportPlanExcel({ auditoriaId, onImported }: { auditoriaId: stri
   return (
     <>
       <input ref={inputRef} type="file" accept=".xlsx" className="hidden" onChange={onFileChange} />
-      <button
-        onClick={onPick}
-        disabled={loading}
-        className="h-9 px-3.5 rounded-md border border-border text-text text-[13px] hover:bg-bg3 disabled:opacity-60"
-      >
+      <Button variant="outline" onClick={onPick} disabled={loading}>
         {loading ? "Sincronizando…" : "Actualizar plan desde el cargue de excel"}
-      </button>
+      </Button>
 
       {(result || error) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={closeModal}>
           <div className="w-full max-w-lg bg-bg2 border border-border rounded-lg p-5" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-[15px] font-semibold text-text">Importar plan desde Excel</h2>
-              <button onClick={closeModal} className="text-muted hover:text-text text-lg leading-none">
+              <Button variant="ghost" size="icon" onClick={closeModal}>
                 ×
-              </button>
+              </Button>
             </div>
 
             {error && <div className="text-[13px] text-red bg-red-bg rounded-md p-3">{error}</div>}
@@ -95,12 +92,9 @@ export function ImportPlanExcel({ auditoriaId, onImported }: { auditoriaId: stri
               </div>
             )}
 
-            <button
-              onClick={() => descargarPlantillaImportExcel(auditoriaId)}
-              className="mt-4 text-[12px] text-blue hover:underline"
-            >
+            <Button variant="link" onClick={() => descargarPlantillaImportExcel(auditoriaId)} className="mt-4 text-[12px]">
               Descargar plantilla de ejemplo
-            </button>
+            </Button>
           </div>
         </div>
       )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 type ToastVariant = "success" | "error" | "warning" | "info";
 
@@ -70,14 +71,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 {s.icon}
               </span>
               <span className="flex-1 pt-0.5 text-[13px] leading-snug text-text">{t.message}</span>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="iconSm"
                 onClick={() => dismiss(t.id)}
                 aria-label="Cerrar aviso"
-                className="mt-0.5 shrink-0 text-sm leading-none text-muted hover:text-text"
+                className="mt-0.5 shrink-0"
               >
                 ✕
-              </button>
+              </Button>
             </div>
           );
         })}
