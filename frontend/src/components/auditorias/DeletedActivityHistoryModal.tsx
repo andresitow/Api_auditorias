@@ -2,6 +2,7 @@
 
 import type { DeletedActivity } from "@/types/auditorias";
 import { Button } from "@/components/ui/button";
+import { SpaceStars } from "@/components/ui/SpaceStars";
 import { formatFechaHora } from "@/lib/dates";
 import { ACTION_LABEL } from "@/lib/historyLabels";
 
@@ -11,10 +12,11 @@ import { ACTION_LABEL } from "@/lib/historyLabels";
 export function DeletedActivityHistoryModal({ deletedActivity, onClose }: { deletedActivity: DeletedActivity; onClose: () => void }) {
   return (
     <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-[100] p-5" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="bg-bg2 border border-border rounded-xl w-full max-w-[560px] max-h-[84vh] flex flex-col">
+      <div className="space-form w-full max-w-[560px] max-h-[84vh] flex flex-col">
+        <SpaceStars />
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <div>
-            <div className="text-[15px] font-semibold">Historial de trazabilidad</div>
+            <div className="space-form__title text-[16px]"><span>Historial de trazabilidad</span></div>
             <div className="text-[12px] text-muted">{deletedActivity.nombre}</div>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}>

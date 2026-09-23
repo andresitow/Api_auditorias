@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { editOccurrenceFecha } from "@/services/auditorias.service";
 import type { ActivityOccurrence } from "@/types/auditorias";
 import { Button } from "@/components/ui/button";
+import { SpaceStars } from "@/components/ui/SpaceStars";
 import { inputCls, labelCls } from "@/lib/formStyles";
 
 interface FormValues {
@@ -34,10 +35,11 @@ export function EditFechaModal({
 
   return (
     <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-[100] p-5" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <form onSubmit={onSubmit} className="bg-bg2 border border-border rounded-xl w-full max-w-[420px] flex flex-col">
+      <form onSubmit={onSubmit} className="space-form w-full max-w-[420px] flex flex-col">
+        <SpaceStars />
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <div>
-            <div className="text-[15px] font-semibold">Editar fecha</div>
+            <div className="space-form__title text-[16px]"><span>Editar fecha</span></div>
             <div className="text-[12px] text-muted">{occurrence.activity?.nombre}</div>
           </div>
           <Button type="button" variant="ghost" size="icon" onClick={onClose}>

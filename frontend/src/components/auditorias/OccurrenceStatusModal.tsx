@@ -7,6 +7,7 @@ import { API_URL } from "@/services/api";
 import type { ActivityOccurrence, EstadoActividad, OccurrenceEvidencia } from "@/types/auditorias";
 import { EstadoBadge } from "./EstadoBadge";
 import { Button } from "@/components/ui/button";
+import { SpaceStars } from "@/components/ui/SpaceStars";
 import { inputCls, labelCls } from "@/lib/formStyles";
 
 const IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
@@ -99,10 +100,11 @@ export function OccurrenceStatusModal({
 
   return (
     <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-[100] p-5" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <form onSubmit={onSubmit} className="bg-bg2 border border-border rounded-xl w-full max-w-[480px] max-h-[84vh] flex flex-col">
+      <form onSubmit={onSubmit} className="space-form w-full max-w-[480px] max-h-[84vh] flex flex-col">
+        <SpaceStars />
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <div>
-            <div className="text-[15px] font-semibold">Actualizar estado</div>
+            <div className="space-form__title text-[16px]"><span>Actualizar estado</span></div>
             <div className="text-[12px] text-muted">{occurrence.activity?.nombre}</div>
           </div>
           <Button type="button" variant="ghost" size="icon" onClick={onClose}>
