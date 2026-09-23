@@ -22,7 +22,7 @@ function buildService(cfg: Record<string, unknown> = cfgBase) {
   return { service, prisma, configService };
 }
 
-const occ = (estado: EstadoActividad, fecha: Date | string) => ({
+const occ = (estado: EstadoActividad, fecha: Date | string | number) => ({
   estado,
   fechaProgramada: new Date(fecha),
 });

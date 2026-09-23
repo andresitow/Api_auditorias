@@ -381,11 +381,9 @@ describe('OccurrencesService.changeEstado', () => {
     expect(order).toEqual(['update', 'unlink']);
   });
 
-  // BUG POTENCIAL (defensa en profundidad): el DTO valida fechaEjecucion solo por
-  // class-validator. Si el servicio se invoca sin pasar por el ValidationPipe con
-  // estado EJECUTADO y sin fecha, `new Date(undefined)` produce "Invalid Date" y
-  // `.toISOString()` lanza RangeError en el historial en lugar de un 400 claro.
-  it.skip('EJECUTADO sin fechaEjecucion debería rechazarse con BadRequest (esperado) - hoy lanza RangeError/Prisma error (obtenido)', async () => {
+  // Defensa en profundidad: aunque el DTO ya valida fechaEjecucion con class-validator, si el
+  // servicio se invoca sin pasar por el ValidationPipe debe responder un 400 claro.
+  it('EJECUTADO sin fechaEjecucion se rechaza con BadRequest', async () => {
     const { service, prisma } = build();
     prisma.activityOccurrence.findFirst.mockResolvedValue(before);
     await expect(

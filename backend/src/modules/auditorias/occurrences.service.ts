@@ -129,6 +129,11 @@ export class OccurrencesService {
     // pasaba `dto.fechaEjecucion ?? null` al historial en ese caso, que es distinto
     // de `before.fechaEjecucion`: registraba un cambio a fechaEjecucion que en
     // realidad nunca se escribió en la ocurrencia).
+    if (dto.estado === EstadoActividad.EJECUTADO && !dto.fechaEjecucion) {
+      throw new BadRequestException(
+        'fechaEjecucion es obligatoria cuando el estado es EJECUTADO',
+      );
+    }
     const nuevaFechaEjecucion =
       dto.estado === EstadoActividad.EJECUTADO
         ? new Date(dto.fechaEjecucion!)

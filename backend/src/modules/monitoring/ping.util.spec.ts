@@ -3,7 +3,7 @@ const execFileMock = jest.fn();
 jest.mock('child_process', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { promisify } = require('util') as typeof import('util');
-  const execFile: Record<symbol, unknown> = () => undefined;
+  const execFile = (() => undefined) as unknown as Record<symbol, unknown>;
   // ping.util.ts hace promisify(execFile): con el símbolo custom devolvemos { stdout, stderr }
   execFile[promisify.custom] = (...args: unknown[]) => execFileMock(...args);
   return { execFile };

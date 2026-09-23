@@ -65,11 +65,8 @@ class TestActivitiesByCategory:
         res = _activities_by_category(df)
         assert res[0][1][0]["occurrences"] == []
 
-    # BUG (reportado): con pandas 3 una descripción NULL llega como NaN (float, truthy), por lo
-    # que `row["descripcion"] or ""` en plan_trabajo_report._activities_by_category NO la
-    # convierte en "" y NaN se propaga a las celdas de Excel / al Paragraph del PDF.
-    # Esperado: "" ; obtenido: nan.
-    @pytest.mark.skip(reason="Bug: descripcion NULL llega como NaN y `or \"\"` no la normaliza (esperado '', obtenido nan)")
+    # Con pandas 3 una descripción NULL llega como NaN (float, truthy): debe normalizarse a ""
+    # para que no se propague NaN a las celdas de Excel / al Paragraph del PDF.
     def test_descripcion_nula_se_vuelve_cadena_vacia(self):
         df = df_export([("Switches", "a1", "X", None, None)])
         assert _activities_by_category(df)[0][1][0]["descripcion"] == ""

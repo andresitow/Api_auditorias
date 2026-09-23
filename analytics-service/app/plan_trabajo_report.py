@@ -65,7 +65,7 @@ def _activities_by_category(df: pd.DataFrame) -> list[tuple[str, list[dict]]]:
         if row["activity_id"] not in actividades:
             actividades[row["activity_id"]] = {
                 "nombre": row["actividad"],
-                "descripcion": row["descripcion"] or "",
+                "descripcion": "" if pd.isna(row["descripcion"]) else (row["descripcion"] or ""),
                 "responsable": row["responsable"],
                 "frecuencia": row["frecuencia"],
                 "occurrences": [],

@@ -74,7 +74,10 @@ export class NotificationsService {
     if (pendientes.length === 0) return;
 
     const resultado = await this.enviar(cfg, this.construirMensaje(pendientes));
-    if (!resultado.teams && !resultado.email) return; // ningún canal configurado, no marcar como enviado
+    // Solo se marca como notificado si al menos un canal entregó el aviso; si no hay canal
+    // configurado o todos fallaron (webhook caído, SMTP mal configurado), se reintenta en la
+    // próxima corrida en vez de perder el aviso.
+    if (resultado.teams !== 'ok' && resultado.email !== 'ok') return;
 
     for (const { occ, marcador } of pendientes) {
       await this.prisma.activityOccurrence.update({

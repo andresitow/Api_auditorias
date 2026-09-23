@@ -276,12 +276,9 @@ describe('NotificationsService.checkAndNotify - envío', () => {
     await expect(service.checkAndNotify()).resolves.toBeUndefined();
   });
 
-  // BUG (reportado): el comentario del código dice "ningún canal configurado, no marcar
-  // como enviado", pero la condición `!resultado.teams && !resultado.email` solo cubre
-  // "ningún canal INTENTADO". Si el único canal configurado falla (SMTP mal configurado,
-  // webhook de Teams caído / 500), resultado = { email: 'error' } es truthy y las
-  // ocurrencias se marcan en notificadoDias => el aviso NUNCA se reintenta.
-  it.skip('BUG: si todos los canales fallan NO debería marcar notificadoDias (esperado) - hoy sí marca (obtenido)', async () => {
+  // Si todos los canales configurados fallan (SMTP mal configurado, webhook de Teams caído / 500)
+  // el aviso NO se marca en notificadoDias, para que se reintente en la próxima corrida.
+  it('si todos los canales fallan NO marca notificadoDias', async () => {
     fetchMock.mockResolvedValue({ ok: false, status: 500 });
     const { service, prisma } = build({ notifEmails: null });
     prisma.activityOccurrence.findMany.mockResolvedValue([occ('x', 3)]);
@@ -289,19 +286,19 @@ describe('NotificationsService.checkAndNotify - envío', () => {
     expect(prisma.activityOccurrence.update).not.toHaveBeenCalled();
   });
 
-  it('[caracterización del BUG anterior] Teams responde 500 pero igual se marca como notificado', async () => {
+  it('Teams responde 500: no se marca como notificado (se reintenta)', async () => {
     fetchMock.mockResolvedValue({ ok: false, status: 500 });
     const { service, prisma } = build({ notifEmails: null });
     prisma.activityOccurrence.findMany.mockResolvedValue([occ('x', 3)]);
     await service.checkAndNotify();
-    expect(prisma.activityOccurrence.update).toHaveBeenCalledTimes(1);
+    expect(prisma.activityOccurrence.update).not.toHaveBeenCalled();
   });
 
-  it('[caracterización del BUG anterior] SMTP no configurado (error) igual marca como notificado', async () => {
+  it('SMTP no configurado (error): no se marca como notificado (se reintenta)', async () => {
     const { service, prisma } = build({ teamsWebhookUrl: null }, { SMTP_HOST: 'h' });
     prisma.activityOccurrence.findMany.mockResolvedValue([occ('x', 3)]);
     await service.checkAndNotify();
-    expect(prisma.activityOccurrence.update).toHaveBeenCalledTimes(1);
+    expect(prisma.activityOccurrence.update).not.toHaveBeenCalled();
   });
 
   it('fetch lanza excepción: no rompe el cron', async () => {
