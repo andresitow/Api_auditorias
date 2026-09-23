@@ -13,6 +13,20 @@ function emptyCounts(): EstadoCounts {
   return { PLANEADO: 0, EJECUTADO: 0, REPROGRAMADO: 0, NO_REALIZADO: 0 };
 }
 
+const DAY_MS = 86_400_000;
+
+/** Porcentaje entero (redondeado) de `parte` sobre `total`; 0 si `total` es 0. */
+function pct(parte: number, total: number): number {
+  return total === 0 ? 0 : Math.round((parte / total) * 100);
+}
+
+/** Límite superior de la ventana "próximas a vencer": el mayor de los días de
+ * anticipación configurados (o 7 si no hay ninguno) a partir de `now`. */
+function dueSoonHorizon(now: Date, diasAntes: number[]): Date {
+  const maxDias = diasAntes.length ? Math.max(...diasAntes) : 7;
+  return new Date(now.getTime() + maxDias * DAY_MS);
+}
+
 @Injectable()
 export class DashboardService {
   constructor(
@@ -20,8 +34,13 @@ export class DashboardService {
     private readonly configService: AuditoriaConfigService,
   ) {}
 
-  async kpis(auditoriaId: string, anio: number, categoria?: string) {
-    const occurrences = await this.prisma.activityOccurrence.findMany({
+  /** Ocurrencias (estado y fecha) de las actividades activas de la auditoría en el año. */
+  private findYearOccurrences(
+    auditoriaId: string,
+    anio: number,
+    categoria?: string,
+  ) {
+    return this.prisma.activityOccurrence.findMany({
       where: {
         periodo: { startsWith: String(anio) },
         activity: {
@@ -32,11 +51,18 @@ export class DashboardService {
       },
       select: { estado: true, fechaProgramada: true },
     });
+  }
+
+  async kpis(auditoriaId: string, anio: number, categoria?: string) {
+    const occurrences = await this.findYearOccurrences(
+      auditoriaId,
+      anio,
+      categoria,
+    );
 
     const cfg = await this.configService.get();
     const now = new Date();
-    const maxDias = cfg.diasAntes.length ? Math.max(...cfg.diasAntes) : 7;
-    const horizon = new Date(now.getTime() + maxDias * 86_400_000);
+    const horizon = dueSoonHorizon(now, cfg.diasAntes);
 
     const porEstado = emptyCounts();
     for (const o of occurrences) porEstado[o.estado] += 1;
@@ -51,8 +77,7 @@ export class DashboardService {
         o.fechaProgramada >= now &&
         o.fechaProgramada <= horizon,
     ).length;
-    const cumplimientoPct =
-      total === 0 ? 0 : Math.round((porEstado.EJECUTADO / total) * 100);
+    const cumplimientoPct = pct(porEstado.EJECUTADO, total);
     const semaforo =
       cumplimientoPct >= cfg.semaforoVerdePct
         ? 'verde'
@@ -77,17 +102,11 @@ export class DashboardService {
     groupBy: 'mes' | 'bimestre' | 'trimestre',
     categoria?: string,
   ) {
-    const occurrences = await this.prisma.activityOccurrence.findMany({
-      where: {
-        periodo: { startsWith: String(anio) },
-        activity: {
-          auditoriaId,
-          activa: true,
-          categoria: categoria || undefined,
-        },
-      },
-      select: { estado: true, fechaProgramada: true },
-    });
+    const occurrences = await this.findYearOccurrences(
+      auditoriaId,
+      anio,
+      categoria,
+    );
 
     const buckets = new Map<
       string,
@@ -121,10 +140,7 @@ export class DashboardService {
         periodo,
         programado: b.programado,
         ejecutado: b.ejecutado,
-        cumplimientoPct:
-          b.programado === 0
-            ? 0
-            : Math.round((b.ejecutado / b.programado) * 100),
+        cumplimientoPct: pct(b.ejecutado, b.programado),
       };
     });
   }
@@ -154,8 +170,7 @@ export class DashboardService {
         return {
           categoria,
           ...e,
-          cumplimientoPct:
-            total === 0 ? 0 : Math.round((e.EJECUTADO / total) * 100),
+          cumplimientoPct: pct(e.EJECUTADO, total),
         };
       })
       .sort((a, b) => compararCategorias(a.categoria, b.categoria));
@@ -164,8 +179,7 @@ export class DashboardService {
   async alertas(auditoriaId: string) {
     const cfg = await this.configService.get();
     const now = new Date();
-    const maxDias = cfg.diasAntes.length ? Math.max(...cfg.diasAntes) : 7;
-    const horizon = new Date(now.getTime() + maxDias * 86_400_000);
+    const horizon = dueSoonHorizon(now, cfg.diasAntes);
 
     const candidatas = await this.prisma.activityOccurrence.findMany({
       where: {
@@ -183,7 +197,7 @@ export class DashboardService {
       .map((o) => ({
         ...o,
         diasRestantes: Math.ceil(
-          (o.fechaProgramada.getTime() - now.getTime()) / 86_400_000,
+          (o.fechaProgramada.getTime() - now.getTime()) / DAY_MS,
         ),
       }))
       .filter((o) => cfg.diasAntes.includes(o.diasRestantes));

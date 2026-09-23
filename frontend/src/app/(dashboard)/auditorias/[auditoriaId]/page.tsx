@@ -74,7 +74,7 @@ export default function AuditoriaDashboardPage() {
       <AlertasWidget auditoriaId={auditoriaId} />
 
       <div className="grid grid-cols-[1.4fr_1fr] gap-4 items-start max-[900px]:grid-cols-1">
-        <div className="bg-bg2 border border-border rounded-lg p-4">
+        <div className="royal-card p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2.5">
               <span className="text-[13px] font-semibold text-text">Tendencia de cumplimiento</span>
@@ -102,12 +102,12 @@ export default function AuditoriaDashboardPage() {
         </div>
 
         <div className="flex flex-col gap-4">
-          <div className="bg-bg2 border border-border rounded-lg p-4">
+          <div className="royal-card p-4">
             <span className="text-[13px] font-semibold text-text block mb-3">Cumplimiento por categoría</span>
             <CategoryBarChart data={porCategoria} />
           </div>
 
-          <div className="bg-bg2 border border-border rounded-lg p-4 flex flex-col items-center gap-1">
+          <div className="royal-card p-4 flex flex-col items-center gap-1">
             <span className="text-[13px] font-semibold text-text">% de cumplimiento</span>
             <span className="text-4xl font-semibold text-blue">{kpis ? `${kpis.cumplimientoPct}%` : "—"}</span>
           </div>

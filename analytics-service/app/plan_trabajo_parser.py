@@ -288,6 +288,13 @@ def is_footer_row(texto_normalizado: str) -> bool:
     return texto_normalizado.startswith(FOOTER_PREFIXES)
 
 
+def _codigo_celda(ws: Worksheet, row: int, col: int) -> str | None:
+    """Código P/E/R/N (en mayúscula) de una celda de la grilla, o None si está vacía
+    o trae otra cosa."""
+    codigo = cell_text(ws.cell(row, col).value).upper()
+    return codigo if codigo in ESTADO_MAP else None
+
+
 def _codigo_mes(ws: Worksheet, row: int, mes_index0: int) -> str | None:
     """Primer código P/E/R/N reconocible entre las 4 columnas de ese mes. En la
     práctica solo una de las 4 columnas trae dato (representan semanas del mes
@@ -295,9 +302,9 @@ def _codigo_mes(ws: Worksheet, row: int, mes_index0: int) -> str | None:
     actividad); si hubiera más de una marcada, nos quedamos con la primera."""
     col_base = WEEK_FIRST + mes_index0 * COLUMNAS_POR_MES
     for i in range(COLUMNAS_POR_MES):
-        valor = cell_text(ws.cell(row, col_base + i).value)
-        if valor and valor.strip().upper() in ESTADO_MAP:
-            return valor.strip().upper()
+        codigo = _codigo_celda(ws, row, col_base + i)
+        if codigo:
+            return codigo
     return None
 
 
@@ -323,9 +330,8 @@ def _periodos_diario(ws: Worksheet, row: int, anio: int) -> list[PeriodoEstado]:
         dias_del_mes = monthrange(anio, mes + 1)[1]
         for semana in range(COLUMNAS_POR_MES):
             col = WEEK_FIRST + mes * COLUMNAS_POR_MES + semana
-            valor = cell_text(ws.cell(row, col).value)
-            codigo = valor.strip().upper() if valor else None
-            if not codigo or codigo not in ESTADO_MAP:
+            codigo = _codigo_celda(ws, row, col)
+            if not codigo:
                 continue
             dia_aprox = min(
                 dias_del_mes,

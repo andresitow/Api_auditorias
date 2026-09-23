@@ -4,13 +4,16 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EstadoActividad, Frecuencia } from '@prisma/client';
+import {
+  ActivityOccurrence,
+  EstadoActividad,
+  Frecuencia,
+} from '@prisma/client';
 import { Workbook } from 'exceljs';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ActivitiesService } from './activities.service';
 import { HistoryActor, HistoryService } from './history.service';
 import { CreateActivityDto } from './dto/create-activity.dto';
-import { UpdateActivityDto } from './dto/update-activity.dto';
 
 /** Importa el plan de trabajo desde un .xlsx y lo deja sincronizado con el archivo.
  *
@@ -234,18 +237,9 @@ export class ImportExcelService {
       if (existing) vistas.add(existing.id);
 
       try {
+        const dto = this.buildActivityDto(fila);
         let activityId: string;
         if (existing) {
-          const dto: UpdateActivityDto = {
-            categoria: fila.categoria,
-            nombre: fila.nombre,
-            responsable: fila.responsable,
-            frecuencia: fila.frecuencia as Frecuencia,
-            descripcionEvidencia: fila.descripcionEvidencia ?? undefined,
-            observacion: fila.observacion ?? undefined,
-            activa: fila.activa,
-            fechaEspecifica: fila.fechaEspecifica ?? undefined,
-          };
           await this.activitiesService.update(
             auditoriaId,
             existing.id,
@@ -255,16 +249,6 @@ export class ImportExcelService {
           result.actualizadas += 1;
           activityId = existing.id;
         } else {
-          const dto: CreateActivityDto = {
-            categoria: fila.categoria,
-            nombre: fila.nombre,
-            responsable: fila.responsable,
-            frecuencia: fila.frecuencia as Frecuencia,
-            descripcionEvidencia: fila.descripcionEvidencia ?? undefined,
-            observacion: fila.observacion ?? undefined,
-            activa: fila.activa,
-            fechaEspecifica: fila.fechaEspecifica ?? undefined,
-          };
           const created = await this.activitiesService.create(
             auditoriaId,
             dto,
@@ -309,6 +293,21 @@ export class ImportExcelService {
     }
 
     return result;
+  }
+
+  /** Datos de la actividad a partir de una fila del Excel; sirven tanto para crear
+   * como para actualizar (UpdateActivityDto es la versión parcial del de creación). */
+  private buildActivityDto(fila: FilaActividad): CreateActivityDto {
+    return {
+      categoria: fila.categoria,
+      nombre: fila.nombre,
+      responsable: fila.responsable,
+      frecuencia: fila.frecuencia as Frecuencia,
+      descripcionEvidencia: fila.descripcionEvidencia ?? undefined,
+      observacion: fila.observacion ?? undefined,
+      activa: fila.activa,
+      fechaEspecifica: fila.fechaEspecifica ?? undefined,
+    };
   }
 
   /** Busca la actividad existente que le corresponde a una fila del Excel. Por defecto
@@ -367,58 +366,79 @@ export class ImportExcelService {
         // actual (ya filtrado antes de llamar acá) — no hay nada que crear. Para
         // A_DEMANDA/CUANDO_SE_REQUIERA sí corresponde crearla.
         if (!esAdHoc) continue;
-        const fechaProgramada = this.lastDayOfPeriodoMensual(periodo);
-        if (!fechaProgramada) continue;
-
-        const created = await this.prisma.activityOccurrence.create({
-          data: {
-            activityId,
-            periodo,
-            fechaProgramada,
-            estado: estado as EstadoActividad,
-            fechaEjecucion:
-              estado === EstadoActividad.EJECUTADO
-                ? fechaProgramada
-                : undefined,
-            createdBy: actor.userId,
-          },
-        });
-        await this.history.logOccurrence(
-          created.id,
-          'creado_importado_excel',
-          actor,
-          'estado',
-          undefined,
-          estado,
-        );
-        actualizadas += 1;
+        if (
+          await this.createAdHocOccurrence(activityId, periodo, estado, actor)
+        )
+          actualizadas += 1;
         continue;
       }
 
       if (occurrence.estado === estado) continue;
 
-      await this.prisma.activityOccurrence.update({
-        where: { id: occurrence.id },
-        data: {
-          estado: estado as EstadoActividad,
-          fechaEjecucion:
-            estado === EstadoActividad.EJECUTADO
-              ? occurrence.fechaProgramada
-              : occurrence.fechaEjecucion,
-          updatedBy: actor.userId,
-        },
-      });
-      await this.history.logOccurrence(
-        occurrence.id,
-        'estado_importado_excel',
-        actor,
-        'estado',
-        occurrence.estado,
-        estado,
-      );
+      await this.updateOccurrenceEstado(occurrence, estado, actor);
       actualizadas += 1;
     }
     return actualizadas;
+  }
+
+  /** Crea la ocurrencia ad-hoc de un periodo mensual con el estado que trae el Excel.
+   * Devuelve false (sin crear nada) si el periodo no tiene formato "AAAA-MM". */
+  private async createAdHocOccurrence(
+    activityId: string,
+    periodo: string,
+    estado: string,
+    actor: HistoryActor,
+  ): Promise<boolean> {
+    const fechaProgramada = this.lastDayOfPeriodoMensual(periodo);
+    if (!fechaProgramada) return false;
+
+    const created = await this.prisma.activityOccurrence.create({
+      data: {
+        activityId,
+        periodo,
+        fechaProgramada,
+        estado: estado as EstadoActividad,
+        fechaEjecucion:
+          estado === EstadoActividad.EJECUTADO ? fechaProgramada : undefined,
+        createdBy: actor.userId,
+      },
+    });
+    await this.history.logOccurrence(
+      created.id,
+      'creado_importado_excel',
+      actor,
+      'estado',
+      undefined,
+      estado,
+    );
+    return true;
+  }
+
+  /** Aplica el estado del Excel a una ocurrencia existente y registra el cambio. */
+  private async updateOccurrenceEstado(
+    occurrence: ActivityOccurrence,
+    estado: string,
+    actor: HistoryActor,
+  ): Promise<void> {
+    await this.prisma.activityOccurrence.update({
+      where: { id: occurrence.id },
+      data: {
+        estado: estado as EstadoActividad,
+        fechaEjecucion:
+          estado === EstadoActividad.EJECUTADO
+            ? occurrence.fechaProgramada
+            : occurrence.fechaEjecucion,
+        updatedBy: actor.userId,
+      },
+    });
+    await this.history.logOccurrence(
+      occurrence.id,
+      'estado_importado_excel',
+      actor,
+      'estado',
+      occurrence.estado,
+      estado,
+    );
   }
 
   /** Último día del mes de un periodo "AAAA-MM" (mismo criterio que

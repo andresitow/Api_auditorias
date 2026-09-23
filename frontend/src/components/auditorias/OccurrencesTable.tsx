@@ -4,11 +4,7 @@ import { useState } from "react";
 import type { ActivityOccurrence } from "@/types/auditorias";
 import { EstadoBadge } from "./EstadoBadge";
 import { Button } from "@/components/ui/button";
-
-function formatFecha(iso: string) {
-  const [y, m, d] = iso.slice(0, 10).split("-");
-  return `${d}/${m}/${y}`;
-}
+import { formatFecha } from "@/lib/dates";
 
 const FRECUENCIA_LABEL: Record<string, string> = {
   UNICA: "Fecha específica",
@@ -37,79 +33,81 @@ export function OccurrencesTable({
   }
 
   return (
-    <div className="overflow-x-auto bg-bg2 border border-border rounded-lg">
-      <table className="w-full min-w-[1200px] text-[12.5px] border-collapse">
-        <thead>
-          <tr className="bg-bg3 text-muted text-left">
-            <th className="border border-border px-2.5 py-1.5">Categoría</th>
-            <th className="border border-border px-2.5 py-1.5">Actividad</th>
-            <th className="border border-border px-2.5 py-1.5">Responsable</th>
-            <th className="border border-border px-2.5 py-1.5">Frecuencia</th>
-            <th className="border border-border px-2.5 py-1.5">Periodo</th>
-            <th className="border border-border px-2.5 py-1.5">F. Programada</th>
-            <th className="border border-border px-2.5 py-1.5">F. Ejecución</th>
-            <th className="border border-border px-2.5 py-1.5">Estado</th>
-            <th className="border border-border px-2.5 py-1.5">Observación</th>
-            <th className="border border-border px-2.5 py-1.5">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {occurrences.map((o) => {
-            const vencida = o.estado === "PLANEADO" && o.fechaProgramada.slice(0, 10) < today;
-            return (
-              <tr key={o.id} className={`hover:bg-bg3 ${vencida ? "bg-red-bg/40" : ""}`}>
-                <td className="border border-border px-2.5 py-1.5 text-muted whitespace-nowrap">{o.activity?.categoria}</td>
-                <td className="border border-border px-2.5 py-1.5 text-text max-w-[280px]">{o.activity?.nombre}</td>
-                <td className="border border-border px-2.5 py-1.5 text-muted whitespace-nowrap">{o.activity?.responsable}</td>
-                <td className="border border-border px-2.5 py-1.5 text-muted whitespace-nowrap">
-                  {o.activity?.frecuencia ? (FRECUENCIA_LABEL[o.activity.frecuencia] ?? o.activity.frecuencia) : ""}
-                </td>
-                <td className="border border-border px-2.5 py-1.5 font-mono text-muted whitespace-nowrap">{o.periodo}</td>
-                <td className="border border-border px-2.5 py-1.5 font-mono whitespace-nowrap">
-                  {formatFecha(o.fechaProgramada)}
-                  {vencida && (
-                    <span className="ml-1.5 text-red" title="Vencida">
-                      (vencida)
-                    </span>
-                  )}
-                </td>
-                <td className="border border-border px-2.5 py-1.5 font-mono text-muted whitespace-nowrap">
-                  {o.fechaEjecucion ? formatFecha(o.fechaEjecucion) : "—"}
-                </td>
-                <td className="border border-border px-2.5 py-1.5 whitespace-nowrap">
-                  <EstadoBadge estado={o.estado} compact />
-                </td>
-                <td className="border border-border px-2.5 py-1.5 text-muted max-w-[220px] whitespace-pre-wrap break-words">
-                  {o.observaciones ?? "—"}
-                </td>
-                <td className="border border-border px-2.5 py-1.5 whitespace-nowrap">
-                  <div className="flex gap-2.5">
-                    <Button variant="link" onClick={() => onChangeEstado(o)}>
-                      Estado
-                    </Button>
-                    <Button variant="linkWarning" onClick={() => onReprogramar(o)}>
-                      Reprogramar
-                    </Button>
-                    <Button variant="link" onClick={() => onEditarFecha(o)}>
-                      Editar fecha
-                    </Button>
-                    <Button variant="linkMuted" onClick={() => onHistorial(o)}>
-                      Historial
-                    </Button>
-                    <Button
-                      variant="linkDestructive"
-                      onClick={() => onEliminarOcurrencia(o)}
-                      title="Elimina solo esta fecha; las demás ocurrencias de la actividad no se ven afectadas"
-                    >
-                      Eliminar fecha
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+    <div className="royal-card">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[1200px] text-[12.5px] border-collapse">
+          <thead>
+            <tr className="bg-bg3 text-muted text-left">
+              <th className="border border-border px-2.5 py-1.5">Categoría</th>
+              <th className="border border-border px-2.5 py-1.5">Actividad</th>
+              <th className="border border-border px-2.5 py-1.5">Responsable</th>
+              <th className="border border-border px-2.5 py-1.5">Frecuencia</th>
+              <th className="border border-border px-2.5 py-1.5">Periodo</th>
+              <th className="border border-border px-2.5 py-1.5">F. Programada</th>
+              <th className="border border-border px-2.5 py-1.5">F. Ejecución</th>
+              <th className="border border-border px-2.5 py-1.5">Estado</th>
+              <th className="border border-border px-2.5 py-1.5">Observación</th>
+              <th className="border border-border px-2.5 py-1.5">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {occurrences.map((o) => {
+              const vencida = o.estado === "PLANEADO" && o.fechaProgramada.slice(0, 10) < today;
+              return (
+                <tr key={o.id} className={`hover:bg-bg3 ${vencida ? "bg-red-bg/40" : ""}`}>
+                  <td className="border border-border px-2.5 py-1.5 text-muted whitespace-nowrap">{o.activity?.categoria}</td>
+                  <td className="border border-border px-2.5 py-1.5 text-text max-w-[280px]">{o.activity?.nombre}</td>
+                  <td className="border border-border px-2.5 py-1.5 text-muted whitespace-nowrap">{o.activity?.responsable}</td>
+                  <td className="border border-border px-2.5 py-1.5 text-muted whitespace-nowrap">
+                    {o.activity?.frecuencia ? (FRECUENCIA_LABEL[o.activity.frecuencia] ?? o.activity.frecuencia) : ""}
+                  </td>
+                  <td className="border border-border px-2.5 py-1.5 font-mono text-muted whitespace-nowrap">{o.periodo}</td>
+                  <td className="border border-border px-2.5 py-1.5 font-mono whitespace-nowrap">
+                    {formatFecha(o.fechaProgramada)}
+                    {vencida && (
+                      <span className="ml-1.5 text-red" title="Vencida">
+                        (vencida)
+                      </span>
+                    )}
+                  </td>
+                  <td className="border border-border px-2.5 py-1.5 font-mono text-muted whitespace-nowrap">
+                    {o.fechaEjecucion ? formatFecha(o.fechaEjecucion) : "—"}
+                  </td>
+                  <td className="border border-border px-2.5 py-1.5 whitespace-nowrap">
+                    <EstadoBadge estado={o.estado} compact />
+                  </td>
+                  <td className="border border-border px-2.5 py-1.5 text-muted max-w-[220px] whitespace-pre-wrap break-words">
+                    {o.observaciones ?? "—"}
+                  </td>
+                  <td className="border border-border px-2.5 py-1.5 whitespace-nowrap">
+                    <div className="flex gap-2.5">
+                      <Button variant="link" onClick={() => onChangeEstado(o)}>
+                        Estado
+                      </Button>
+                      <Button variant="linkWarning" onClick={() => onReprogramar(o)}>
+                        Reprogramar
+                      </Button>
+                      <Button variant="link" onClick={() => onEditarFecha(o)}>
+                        Editar fecha
+                      </Button>
+                      <Button variant="linkMuted" onClick={() => onHistorial(o)}>
+                        Historial
+                      </Button>
+                      <Button
+                        variant="linkDestructive"
+                        onClick={() => onEliminarOcurrencia(o)}
+                        title="Elimina solo esta fecha; las demás ocurrencias de la actividad no se ven afectadas"
+                      >
+                        Eliminar fecha
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

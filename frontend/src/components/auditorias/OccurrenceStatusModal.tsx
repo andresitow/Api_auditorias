@@ -7,6 +7,7 @@ import { API_URL } from "@/services/api";
 import type { ActivityOccurrence, EstadoActividad, OccurrenceEvidencia } from "@/types/auditorias";
 import { EstadoBadge } from "./EstadoBadge";
 import { Button } from "@/components/ui/button";
+import { inputCls, labelCls } from "@/lib/formStyles";
 
 const IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
 const MAX_EVIDENCIAS = 5;
@@ -25,9 +26,6 @@ interface FormValues {
   evidenciaUrl: string;
   evidenciaDescripcion: string;
 }
-
-const inputCls = "w-full bg-bg3 border border-border text-text rounded-md px-2.5 h-9 text-[13px] outline-none focus:border-blue";
-const labelCls = "text-[11px] uppercase tracking-wide text-muted mb-1 block";
 
 export function OccurrenceStatusModal({
   auditoriaId,

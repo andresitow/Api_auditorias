@@ -45,8 +45,8 @@ export function TrendChart({ series }: { series: SeriesPoint[] }) {
           const y = pad + (1 - g / max) * (H - pad * 2);
           return (
             <g key={g}>
-              <line x1={pad} y1={y} x2={W - pad} y2={y} stroke="#30363d" strokeWidth={0.6} />
-              <text x={2} y={y + 3} fontSize={9} fill="#7d8590">
+              <line x1={pad} y1={y} x2={W - pad} y2={y} stroke="rgba(255,255,255,0.22)" strokeWidth={0.6} />
+              <text x={2} y={y + 3} fontSize={9} fill="#c5d0ee">
                 {g}%
               </text>
             </g>
@@ -72,7 +72,7 @@ export function TrendChart({ series }: { series: SeriesPoint[] }) {
               onMouseEnter={() => setHover(i)}
               onMouseLeave={() => setHover(null)}
             />
-            <text x={pt.x} y={H - 6} fontSize={9} fill="#7d8590" textAnchor="middle">
+            <text x={pt.x} y={H - 6} fontSize={9} fill="#c5d0ee" textAnchor="middle">
               {formatPeriodo(pt.p.periodo)}
             </text>
           </g>
@@ -80,7 +80,7 @@ export function TrendChart({ series }: { series: SeriesPoint[] }) {
       </svg>
       {hover !== null && (
         <div
-          className="absolute top-0 -translate-x-1/2 bg-bg3 border border-border rounded-md px-2.5 py-1.5 text-[11px] pointer-events-none"
+          className="absolute top-0 -translate-x-1/2 bg-[#12246b] border border-white/20 rounded-md px-2.5 py-1.5 text-[11px] pointer-events-none"
           style={{ left: `${(points[hover].x / W) * 100}%` }}
         >
           <div className="text-text font-medium">{formatPeriodo(points[hover].p.periodo)}</div>

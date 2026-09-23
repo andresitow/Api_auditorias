@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { getAuditoriaConfig, updateAuditoriaConfig, testAuditoriaNotification } from "@/services/auditorias.service";
 import type { AuditoriaConfig, NotificationTestResult } from "@/types/auditorias";
 import { Button } from "@/components/ui/button";
+import { inputCls, labelCls } from "@/lib/formStyles";
 
 interface FormValues {
   notificacionesActivas: boolean;
@@ -12,9 +13,6 @@ interface FormValues {
   teamsWebhookUrl: string;
   notifEmails: string;
 }
-
-const inputCls = "w-full bg-bg3 border border-border text-text rounded-md px-2.5 h-9 text-[13px] outline-none focus:border-blue";
-const labelCls = "text-[11px] uppercase tracking-wide text-muted mb-1 block";
 
 function parseDiasAntes(value: string): number[] {
   const dias = value
@@ -75,13 +73,13 @@ export default function NotificacionesConfigPage() {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-5 max-w-[640px]">
-      <div className="bg-bg2 border border-border rounded-lg p-4 text-[12.5px] text-muted">
+      <div className="royal-card p-4 text-[12.5px] text-muted">
         Esta configuración es global: aplica a todas las auditorías. Cuando una tarea planeada entra dentro de los
         días de anticipación configurados (por defecto una semana antes), o cuando queda vencida, se envía un aviso
         automático una sola vez por cada umbral, a los canales que actives abajo.
       </div>
 
-      <div className="bg-bg2 border border-border rounded-lg p-4 flex flex-col gap-3.5">
+      <div className="royal-card p-4 flex flex-col gap-3.5">
         <label className="flex items-center gap-2.5 text-[13px]">
           <input type="checkbox" className="w-4 h-4" {...register("notificacionesActivas")} />
           Notificaciones automáticas activas
@@ -93,7 +91,7 @@ export default function NotificacionesConfigPage() {
         </div>
       </div>
 
-      <div className="bg-bg2 border border-border rounded-lg p-4 flex flex-col gap-3.5">
+      <div className="royal-card p-4 flex flex-col gap-3.5">
         <div className="text-[13px] font-semibold">Microsoft Teams</div>
         <div>
           <label className={labelCls}>URL del Incoming Webhook del canal</label>
@@ -101,7 +99,7 @@ export default function NotificacionesConfigPage() {
         </div>
       </div>
 
-      <div className="bg-bg2 border border-border rounded-lg p-4 flex flex-col gap-3.5">
+      <div className="royal-card p-4 flex flex-col gap-3.5">
         <div className="text-[13px] font-semibold">Correo (Outlook / SMTP)</div>
         <div>
           <label className={labelCls}>Destinatarios (separados por coma)</label>
@@ -123,7 +121,7 @@ export default function NotificacionesConfigPage() {
       </div>
 
       {testResult && (
-        <div className="bg-bg2 border border-border rounded-lg p-3 text-[12.5px] flex flex-col gap-1">
+        <div className="royal-card p-3 text-[12.5px] flex flex-col gap-1">
           {testResult.teams && <div>Teams: {testResult.teams === "ok" ? "enviado" : "error (revisa la URL del webhook)"}</div>}
           {testResult.email && <div>Correo: {testResult.email === "ok" ? "enviado" : "error (revisa la configuración SMTP)"}</div>}
           {!testResult.teams && !testResult.email && <div className="text-muted">No hay ningún canal configurado todavía.</div>}

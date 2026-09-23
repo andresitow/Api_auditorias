@@ -5,15 +5,7 @@ import { useParams } from "next/navigation";
 import { listDeletedActivities } from "@/services/auditorias.service";
 import type { DeletedActivity } from "@/types/auditorias";
 import { DeletedActivityHistoryModal } from "@/components/auditorias/DeletedActivityHistoryModal";
-
-function formatFecha(iso: string) {
-  const [y, m, d] = iso.slice(0, 10).split("-");
-  return `${d}/${m}/${y}`;
-}
-
-function formatFechaHora(iso: string) {
-  return new Date(iso).toLocaleString("es-CO", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
-}
+import { formatFecha, formatFechaHora } from "@/lib/dates";
 
 export default function ActividadesEliminadasPage() {
   const { auditoriaId } = useParams<{ auditoriaId: string }>();
@@ -39,51 +31,53 @@ export default function ActividadesEliminadasPage() {
       ) : rows.length === 0 ? (
         <div className="text-center py-12 text-muted text-sm">No hay actividades eliminadas.</div>
       ) : (
-        <div className="overflow-x-auto bg-bg2 border border-border rounded-lg">
-          <table className="w-full min-w-[1100px] text-[12.5px] border-collapse">
-            <thead>
-              <tr className="bg-bg3 text-muted text-left">
-                <th className="border border-border px-2.5 py-1.5">Categoría</th>
-                <th className="border border-border px-2.5 py-1.5">Actividad</th>
-                <th className="border border-border px-2.5 py-1.5">Responsable</th>
-                <th className="border border-border px-2.5 py-1.5">F. Programada</th>
-                <th className="border border-border px-2.5 py-1.5">Motivo</th>
-                <th className="border border-border px-2.5 py-1.5">Eliminado por</th>
-                <th className="border border-border px-2.5 py-1.5">Eliminado el</th>
-                <th className="border border-border px-2.5 py-1.5">Se borra en</th>
-                <th className="border border-border px-2.5 py-1.5">Historial</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.id} className="hover:bg-bg3">
-                  <td className="border border-border px-2.5 py-1.5 text-muted whitespace-nowrap">{row.categoria}</td>
-                  <td className="border border-border px-2.5 py-1.5 text-text max-w-[240px]">{row.nombre}</td>
-                  <td className="border border-border px-2.5 py-1.5 text-muted whitespace-nowrap">{row.responsable}</td>
-                  <td className="border border-border px-2.5 py-1.5 font-mono whitespace-nowrap">{formatFecha(row.fechaProgramada)}</td>
-                  <td className="border border-border px-2.5 py-1.5 text-muted max-w-[240px] whitespace-pre-wrap break-words">{row.motivo}</td>
-                  <td className="border border-border px-2.5 py-1.5 text-muted whitespace-nowrap">{row.eliminadoPorUsername ?? "—"}</td>
-                  <td className="border border-border px-2.5 py-1.5 font-mono text-muted whitespace-nowrap">
-                    {formatFechaHora(row.eliminadoEn)}
-                  </td>
-                  <td className="border border-border px-2.5 py-1.5 whitespace-nowrap">
-                    <span
-                      className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
-                        row.diasRestantes <= 5 ? "bg-red-bg text-red" : "bg-bg3 text-muted"
-                      }`}
-                    >
-                      {row.diasRestantes} día{row.diasRestantes === 1 ? "" : "s"}
-                    </span>
-                  </td>
-                  <td className="border border-border px-2.5 py-1.5 whitespace-nowrap">
-                    <button className="text-[#2f9484] hover:underline text-[12px]" onClick={() => setHistoryTarget(row)}>
-                      Ver
-                    </button>
-                  </td>
+        <div className="royal-card">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1100px] text-[12.5px] border-collapse">
+              <thead>
+                <tr className="bg-bg3 text-muted text-left">
+                  <th className="border border-border px-2.5 py-1.5">Categoría</th>
+                  <th className="border border-border px-2.5 py-1.5">Actividad</th>
+                  <th className="border border-border px-2.5 py-1.5">Responsable</th>
+                  <th className="border border-border px-2.5 py-1.5">F. Programada</th>
+                  <th className="border border-border px-2.5 py-1.5">Motivo</th>
+                  <th className="border border-border px-2.5 py-1.5">Eliminado por</th>
+                  <th className="border border-border px-2.5 py-1.5">Eliminado el</th>
+                  <th className="border border-border px-2.5 py-1.5">Se borra en</th>
+                  <th className="border border-border px-2.5 py-1.5">Historial</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.id} className="hover:bg-bg3">
+                    <td className="border border-border px-2.5 py-1.5 text-muted whitespace-nowrap">{row.categoria}</td>
+                    <td className="border border-border px-2.5 py-1.5 text-text max-w-[240px]">{row.nombre}</td>
+                    <td className="border border-border px-2.5 py-1.5 text-muted whitespace-nowrap">{row.responsable}</td>
+                    <td className="border border-border px-2.5 py-1.5 font-mono whitespace-nowrap">{formatFecha(row.fechaProgramada)}</td>
+                    <td className="border border-border px-2.5 py-1.5 text-muted max-w-[240px] whitespace-pre-wrap break-words">{row.motivo}</td>
+                    <td className="border border-border px-2.5 py-1.5 text-muted whitespace-nowrap">{row.eliminadoPorUsername ?? "—"}</td>
+                    <td className="border border-border px-2.5 py-1.5 font-mono text-muted whitespace-nowrap">
+                      {formatFechaHora(row.eliminadoEn)}
+                    </td>
+                    <td className="border border-border px-2.5 py-1.5 whitespace-nowrap">
+                      <span
+                        className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
+                          row.diasRestantes <= 5 ? "bg-red-bg text-red" : "bg-bg3 text-muted"
+                        }`}
+                      >
+                        {row.diasRestantes} día{row.diasRestantes === 1 ? "" : "s"}
+                      </span>
+                    </td>
+                    <td className="border border-border px-2.5 py-1.5 whitespace-nowrap">
+                      <button className="royal-link hover:underline text-[12px]" onClick={() => setHistoryTarget(row)}>
+                        Ver
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

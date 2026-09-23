@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import { exportExcel, exportPdf } from "@/services/auditorias.service";
-import { Button } from "@/components/ui/button";
+import { FormatDropdown } from "@/components/ui/FormatDropdown";
+import type { Formato } from "@/components/ui/FormatDropdown";
 
+/** Dropdown "Plan de trabajo año actual": descarga el plan de trabajo del año
+ * seleccionado en Excel o PDF (respeta los filtros de categoría/estado si vienen). */
 export function ExportButtons({
   auditoriaId,
   anio,
@@ -15,26 +18,28 @@ export function ExportButtons({
   categoria?: string;
   estado?: string;
 }) {
-  const [loading, setLoading] = useState<"excel" | "pdf" | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handle = async (kind: "excel" | "pdf") => {
-    setLoading(kind);
+  const handle = async (kind: Formato) => {
+    setLoading(true);
     try {
       if (kind === "excel") await exportExcel(auditoriaId, anio, categoria, estado);
       else await exportPdf(auditoriaId, anio, categoria);
     } finally {
-      setLoading(null);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex gap-2">
-      <Button variant="outline" onClick={() => handle("excel")} disabled={loading !== null} className="hover:border-green hover:text-green">
-        {loading === "excel" ? "Generando…" : "Excel"}
-      </Button>
-      <Button variant="outline" onClick={() => handle("pdf")} disabled={loading !== null} className="hover:border-red hover:text-red">
-        {loading === "pdf" ? "Generando…" : "PDF"}
-      </Button>
-    </div>
+    <FormatDropdown
+      onSelect={handle}
+      disabled={loading}
+      itemLabels={{
+        excel: `Descargar plan de trabajo ${anio} en Excel (.xlsx)`,
+        pdf: `Descargar plan de trabajo ${anio} en PDF (.pdf)`,
+      }}
+    >
+      {loading ? "Generando…" : "Plan de trabajo año actual"}
+    </FormatDropdown>
   );
 }

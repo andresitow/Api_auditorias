@@ -36,13 +36,25 @@ export class OccurrencesService {
   ) {}
 
   list(auditoriaId: string, filters: FilterOccurrencesDto) {
+    return this.prisma.activityOccurrence.findMany({
+      where: this.buildListWhere(auditoriaId, filters),
+      include: { activity: true, evidencias: true },
+      orderBy: { fechaProgramada: 'asc' },
+    });
+  }
+
+  /** Traduce los filtros del listado a un `where` de Prisma (sin acceso a base de datos). */
+  private buildListWhere(
+    auditoriaId: string,
+    filters: FilterOccurrencesDto,
+  ): Prisma.ActivityOccurrenceWhereInput {
     const anio = filters.anio ?? new Date().getFullYear();
     const now = new Date();
     const dueSoonLimit = new Date(
       now.getTime() + DUE_SOON_HORIZON_DAYS * 86_400_000,
     );
 
-    const where: Prisma.ActivityOccurrenceWhereInput = {
+    return {
       periodo: filters.periodo ? filters.periodo : { startsWith: String(anio) },
       estado: filters.estado || undefined,
       activity: {
@@ -84,12 +96,6 @@ export class OccurrencesService {
           }
         : {}),
     };
-
-    return this.prisma.activityOccurrence.findMany({
-      where,
-      include: { activity: true, evidencias: true },
-      orderBy: { fechaProgramada: 'asc' },
-    });
   }
 
   async getDetail(auditoriaId: string, id: string) {

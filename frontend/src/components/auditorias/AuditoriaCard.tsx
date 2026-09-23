@@ -13,7 +13,7 @@ export function AuditoriaCard({ auditoria }: { auditoria: Auditoria }) {
   return (
     <Link
       href={`/auditorias/${auditoria.id}`}
-      className="group bg-bg2 border border-border rounded-xl p-5 flex flex-col gap-4 hover:border-blue hover:-translate-y-0.5 transition-all"
+      className="royal-card royal-card--interactive group p-5 flex flex-col gap-4"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
@@ -25,6 +25,8 @@ export function AuditoriaCard({ auditoria }: { auditoria: Auditoria }) {
           <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-bg3 text-muted">Inactiva</span>
         )}
       </div>
+
+      <hr className="royal-card__line" />
 
       {auditoria.descripcion && <p className="text-[12.5px] text-muted leading-snug line-clamp-2">{auditoria.descripcion}</p>}
 

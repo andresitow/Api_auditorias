@@ -80,6 +80,28 @@ def _activities_by_category(df: pd.DataFrame) -> list[tuple[str, list[dict]]]:
     return [(categoria, [actividades_por_categoria[categoria][aid] for aid in orden_actividades[categoria]]) for categoria in orden_categorias]
 
 
+def _cumplimiento_pct(occurrences: list[dict]) -> int | None:
+    """% de ocurrencias EJECUTADO (redondeado), o None si no hay ocurrencias."""
+    total = len(occurrences)
+    if not total:
+        return None
+    ejecutadas = sum(1 for o in occurrences if o["estado"] == "EJECUTADO")
+    return round(ejecutadas / total * 100)
+
+
+def _acumular_ocurrencias(actividad: dict, totales: dict, todas_ocurrencias: list[dict]) -> None:
+    """Suma las ocurrencias de una actividad a los totales del resumen y a la lista global."""
+    for o in actividad["occurrences"]:
+        totales["total"] += 1
+        if o["estado"] == "EJECUTADO":
+            totales["ejecutadas"] += 1
+        elif o["estado"] == "REPROGRAMADO":
+            totales["reprogramadas"] += 1
+        elif o["estado"] == "NO_REALIZADO":
+            totales["no_realizadas"] += 1
+        todas_ocurrencias.append(o)
+
+
 def _semaforo_fill(pct: float) -> str:
     return ESTADO_FILL_HEX["EJECUTADO"] if pct >= 90 else (ESTADO_FILL_HEX["PLANEADO"] if pct >= 70 else ESTADO_FILL_HEX["NO_REALIZADO"])
 
@@ -158,9 +180,8 @@ def _write_categoria_header_excel(ws: Worksheet, r: int, categoria: str) -> int:
 
 def _write_actividad_row_excel(ws: Worksheet, r: int, actividad: dict) -> int:
     occurrences = actividad["occurrences"]
-    total = len(occurrences)
-    ejecutadas = sum(1 for o in occurrences if o["estado"] == "EJECUTADO")
-    pct = f"{round(ejecutadas / total * 100)}%" if total else ""
+    cumplimiento = _cumplimiento_pct(occurrences)
+    pct = f"{cumplimiento}%" if cumplimiento is not None else ""
 
     values = [actividad["nombre"], actividad["descripcion"], actividad["responsable"], actividad["frecuencia"], pct]
     for i, value in enumerate(values, start=1):
@@ -193,15 +214,7 @@ def _write_categorias_excel(ws: Worksheet, r: int, categorias: list[tuple[str, l
         r = _write_grid_header(ws, r)
         for actividad in actividades:
             r = _write_actividad_row_excel(ws, r, actividad)
-            for o in actividad["occurrences"]:
-                totales["total"] += 1
-                if o["estado"] == "EJECUTADO":
-                    totales["ejecutadas"] += 1
-                elif o["estado"] == "REPROGRAMADO":
-                    totales["reprogramadas"] += 1
-                elif o["estado"] == "NO_REALIZADO":
-                    totales["no_realizadas"] += 1
-                todas_ocurrencias.append(o)
+            _acumular_ocurrencias(actividad, totales, todas_ocurrencias)
         r += 1  # fila en blanco entre categorías
     return r, totales, todas_ocurrencias
 
@@ -327,9 +340,8 @@ def _write_categoria_header_pdf(story: list, styles: dict, categoria: str) -> No
 
 def _write_actividad_pdf(story: list, styles: dict, actividad: dict) -> None:
     occurrences = actividad["occurrences"]
-    total = len(occurrences)
-    ejecutadas = sum(1 for o in occurrences if o["estado"] == "EJECUTADO")
-    cumplimiento = f" &nbsp;·&nbsp; {round(ejecutadas / total * 100)}% cumpl." if total else ""
+    pct = _cumplimiento_pct(occurrences)
+    cumplimiento = f" &nbsp;·&nbsp; {pct}% cumpl." if pct is not None else ""
 
     story.append(Paragraph(actividad["nombre"], styles["actividad"]))
     story.append(
@@ -354,15 +366,7 @@ def _write_actividades_pdf(story: list, styles: dict, categorias: list[tuple[str
         _write_categoria_header_pdf(story, styles, categoria)
         for actividad in actividades:
             _write_actividad_pdf(story, styles, actividad)
-            for o in actividad["occurrences"]:
-                totales["total"] += 1
-                if o["estado"] == "EJECUTADO":
-                    totales["ejecutadas"] += 1
-                elif o["estado"] == "REPROGRAMADO":
-                    totales["reprogramadas"] += 1
-                elif o["estado"] == "NO_REALIZADO":
-                    totales["no_realizadas"] += 1
-                todas_ocurrencias.append(o)
+            _acumular_ocurrencias(actividad, totales, todas_ocurrencias)
     return totales, todas_ocurrencias
 
 

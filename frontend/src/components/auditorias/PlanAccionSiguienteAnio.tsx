@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { generarPlanAccion, getPlanAccionResumen, exportPlanAccionExcel, exportPlanAccionPdf } from "@/services/auditorias.service";
 import { usePlanAccionJob } from "@/hooks/usePlanAccionJob";
 import type { PlanAccionDetalle, PlanAccionJobStatus } from "@/types/auditorias";
 import { Button } from "@/components/ui/button";
+import { FormatDropdown } from "@/components/ui/FormatDropdown";
+import type { Formato } from "@/components/ui/FormatDropdown";
 
 const ESTADO_LABEL: Record<PlanAccionJobStatus | "idle", string> = {
   idle: "",
@@ -22,10 +24,13 @@ export function PlanAccionSiguienteAnio({ auditoriaId, anioBase }: { auditoriaId
   const [open, setOpen] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
   const [detalle, setDetalle] = useState<PlanAccionDetalle | null>(null);
-  const [downloading, setDownloading] = useState<"excel" | "pdf" | null>(null);
+  const [downloading, setDownloading] = useState<Formato | null>(null);
+  // Formato elegido en el dropdown: se descarga solo cuando el job termina.
+  const formatoElegido = useRef<Formato | null>(null);
   const { status, progress, mensaje, error, done } = usePlanAccionJob(jobId);
 
-  const iniciar = async () => {
+  const iniciar = async (formato: Formato) => {
+    formatoElegido.current = formato;
     setOpen(true);
     setDetalle(null);
     setJobId(null);
@@ -34,25 +39,21 @@ export function PlanAccionSiguienteAnio({ auditoriaId, anioBase }: { auditoriaId
   };
 
   useEffect(() => {
-    if (done && jobId) getPlanAccionResumen(auditoriaId, jobId).then(setDetalle).catch(() => undefined);
-  }, [done, jobId, auditoriaId]);
-
-  const descargar = async (kind: "excel" | "pdf") => {
-    if (!jobId) return;
-    setDownloading(kind);
-    try {
-      if (kind === "excel") await exportPlanAccionExcel(auditoriaId, jobId, anioPlan);
-      else await exportPlanAccionPdf(auditoriaId, jobId, anioPlan);
-    } finally {
-      setDownloading(null);
-    }
-  };
+    if (!done || !jobId) return;
+    getPlanAccionResumen(auditoriaId, jobId).then(setDetalle).catch(() => undefined);
+    const formato = formatoElegido.current;
+    formatoElegido.current = null;
+    if (!formato) return;
+    setDownloading(formato);
+    const descarga = formato === "excel" ? exportPlanAccionExcel : exportPlanAccionPdf;
+    descarga(auditoriaId, jobId, anioPlan)
+      .catch(() => undefined)
+      .finally(() => setDownloading(null));
+  }, [done, jobId, auditoriaId, anioPlan]);
 
   return (
     <>
-      <Button variant="outline" onClick={iniciar} className="hover:border-blue hover:text-blue">
-        Generar plan de acción {anioPlan}
-      </Button>
+      <FormatDropdown onSelect={iniciar}>Generar plan de acción {anioPlan}</FormatDropdown>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !jobId && setOpen(false)}>
@@ -89,25 +90,7 @@ export function PlanAccionSiguienteAnio({ auditoriaId, anioBase }: { auditoriaId
                   <Kpi label="Prioridad baja / sin cambios" value={String(detalle.resumen.riesgoBajo)} tone="green" />
                   <Kpi label={`Ocurrencias propuestas ${anioPlan}`} value={String(detalle.resumen.ocurrenciasPropuestas)} />
                 </div>
-
-                <div className="flex gap-2 mt-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => descargar("excel")}
-                    disabled={downloading !== null}
-                    className="hover:border-green hover:text-green"
-                  >
-                    {downloading === "excel" ? "Descargando…" : "Excel"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => descargar("pdf")}
-                    disabled={downloading !== null}
-                    className="hover:border-red hover:text-red"
-                  >
-                    {downloading === "pdf" ? "Descargando…" : "PDF"}
-                  </Button>
-                </div>
+                {downloading && <p className="text-[13px] text-muted">Descargando {downloading === "excel" ? "Excel" : "PDF"}…</p>}
               </div>
             )}
           </div>

@@ -15,6 +15,7 @@ import {
 } from "@/lib/evidenciaFolder";
 import type { Activity, Frecuencia } from "@/types/auditorias";
 import { Button } from "@/components/ui/button";
+import { inputCls, labelCls } from "@/lib/formStyles";
 
 const CATEGORIAS = [
   "Sensibilización y formación SI",
@@ -51,9 +52,6 @@ interface FormValues {
   fechaEspecifica: string;
   fechaInicio: string;
 }
-
-const inputCls = "w-full bg-bg3 border border-border text-text rounded-md px-2.5 h-9 text-[13px] outline-none focus:border-blue";
-const labelCls = "text-[11px] uppercase tracking-wide text-muted mb-1 block";
 
 export function ActivityFormModal({
   auditoriaId,
@@ -169,9 +167,17 @@ export function ActivityFormModal({
 
   return (
     <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-[100] p-5" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <form onSubmit={onSubmit} className="bg-bg2 border border-border rounded-xl w-full max-w-[520px] max-h-[84vh] flex flex-col">
+      <form onSubmit={onSubmit} className="space-form w-full max-w-[520px] max-h-[84vh] flex flex-col">
+        <div className="space-form__stars" aria-hidden="true">
+          <span className="space-star" />
+          <span className="space-star" />
+          <span className="space-star" />
+          <span className="space-star" />
+        </div>
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-          <span className="text-[15px] font-semibold">{activity ? "Editar actividad" : "+ Nueva actividad"}</span>
+          <span className="space-form__title text-[16px]">
+            <span>{activity ? "Editar actividad" : "+ Nueva actividad"}</span>
+          </span>
           <Button type="button" variant="ghost" size="icon" onClick={onClose}>
             ✕
           </Button>

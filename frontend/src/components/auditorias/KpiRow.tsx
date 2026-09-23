@@ -5,14 +5,12 @@ function Tile({
   label,
   value,
   accent,
-  bar,
   onClick,
   selected,
 }: {
   label: string;
   value: string | number;
   accent?: string;
-  bar?: string;
   onClick?: () => void;
   selected?: boolean;
 }) {
@@ -21,11 +19,10 @@ function Tile({
     <Comp
       type={onClick ? "button" : undefined}
       onClick={onClick}
-      className={`relative bg-bg2 border rounded-lg p-4 flex flex-col gap-1.5 min-w-[130px] overflow-hidden text-left ${
-        selected ? "border-blue" : "border-border"
-      } ${onClick ? "cursor-pointer hover:bg-bg3 transition-colors" : ""}`}
+      className={`royal-card [--rc-radius:0.75rem] p-4 flex flex-col gap-1.5 min-w-[130px] text-left ${
+        selected ? "outline-2 outline-offset-2 outline-[#3a63e8]" : ""
+      } ${onClick ? "royal-card--interactive" : ""}`}
     >
-      {bar && <span className={`absolute top-0 left-0 right-0 h-[3px] ${bar}`} />}
       <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted">{label}</div>
       <span className={`text-2xl font-semibold ${accent ?? "text-text"}`}>{value}</span>
     </Comp>
@@ -46,7 +43,6 @@ export function KpiRow({
       <Tile
         label="Total"
         value={kpis.total}
-        bar="bg-border"
         selected={selected === "total"}
         onClick={() => onSelect?.("total")}
       />
@@ -54,7 +50,6 @@ export function KpiRow({
         label="Planeadas"
         value={kpis.porEstado.PLANEADO}
         accent="text-blue"
-        bar="bg-blue"
         selected={selected === "PLANEADO"}
         onClick={() => onSelect?.("PLANEADO")}
       />
@@ -62,7 +57,6 @@ export function KpiRow({
         label="Ejecutadas"
         value={kpis.porEstado.EJECUTADO}
         accent="text-green"
-        bar="bg-green"
         selected={selected === "EJECUTADO"}
         onClick={() => onSelect?.("EJECUTADO")}
       />
@@ -70,7 +64,6 @@ export function KpiRow({
         label="Reprogramadas"
         value={kpis.porEstado.REPROGRAMADO}
         accent="text-orange"
-        bar="bg-orange"
         selected={selected === "REPROGRAMADO"}
         onClick={() => onSelect?.("REPROGRAMADO")}
       />
@@ -78,7 +71,6 @@ export function KpiRow({
         label="No realizadas"
         value={kpis.porEstado.NO_REALIZADO}
         accent="text-red"
-        bar="bg-red"
         selected={selected === "NO_REALIZADO"}
         onClick={() => onSelect?.("NO_REALIZADO")}
       />
@@ -86,7 +78,6 @@ export function KpiRow({
         label="Vencidas"
         value={kpis.vencidas}
         accent="text-red"
-        bar="bg-red"
         selected={selected === "vencidas"}
         onClick={() => onSelect?.("vencidas")}
       />
@@ -94,7 +85,6 @@ export function KpiRow({
         label="Próx. a vencer"
         value={kpis.proximasAVencer}
         accent="text-yellow"
-        bar="bg-yellow"
         selected={selected === "proximas"}
         onClick={() => onSelect?.("proximas")}
       />

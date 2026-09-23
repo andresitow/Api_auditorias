@@ -2,9 +2,8 @@
 
 import { useController, useFormContext } from "react-hook-form";
 import type { DiagnosticoPayload, SesionTipo } from "@/types/formularios";
+import { stepInputCls as inputCls, stepLabelCls as labelCls } from "@/lib/formStyles";
 
-const inputCls = "w-full bg-bg3 border border-border text-text rounded-md px-3 h-10 text-sm outline-none focus:border-blue";
-const labelCls = "block text-xs text-muted mb-1.5 font-medium";
 const errCls = "text-red text-[11.5px] mt-1";
 
 export function StepGeneral() {

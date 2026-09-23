@@ -28,7 +28,7 @@ export function RibbonNav() {
 
   return (
     <div className="animate-shell-rise fixed left-1/2 top-3 z-30 -translate-x-1/2">
-      <ExpandingHoverMenu items={items} activeId={active?.href} className="bg-island text-island-ink shadow-lg" />
+      <ExpandingHoverMenu items={items} activeId={active?.href} className="frutiger-nav bg-island text-island-ink shadow-lg" />
     </div>
   );
 }

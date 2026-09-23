@@ -4,19 +4,8 @@ import { useEffect, useState } from "react";
 import { getOccurrenceHistory } from "@/services/auditorias.service";
 import type { ActivityHistoryEntry, ActivityOccurrence } from "@/types/auditorias";
 import { Button } from "@/components/ui/button";
-
-const ACTION_LABEL: Record<string, string> = {
-  creado: "Creado",
-  editado: "Editado",
-  reprogramado: "Reprogramado",
-  fecha_editada: "Fecha corregida",
-  estado_cambiado: "Cambio de estado",
-};
-
-function formatFechaHora(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleString("es-CO", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
-}
+import { formatFechaHora } from "@/lib/dates";
+import { ACTION_LABEL } from "@/lib/historyLabels";
 
 export function OccurrenceHistoryModal({
   auditoriaId,

@@ -8,7 +8,7 @@
   --accent: #38c6ec;
   --nav-bg: #000000;
   --nav-ink: #ffffff;
-  --island-bg: #000000;
+  --island-bg: #1b3ba8; /* azul rey; blanco encima ≈ 9.5:1 */
   --island-ink: #ffffff;
 
   --bg: #ffffff;
@@ -32,7 +32,7 @@
 
 :root[data-theme="dark"] {
   --island-bg: #ffffff;
-  --island-ink: #000000;
+  --island-ink: #1b3ba8; /* azul rey sobre blanco ≈ 9.5:1 */
 
   --bg: #000000;
   --bg2: #111318;
@@ -141,20 +141,607 @@ body {
 
 /* ---------------------------------------------------------------- */
 /* Diseño único de botón para todo el proyecto (ver components/ui/  */
-/* button.tsx) — .animation es el decorador de "ripple" a cada lado */
-/* del texto en los botones sólidos, tal cual el snippet provisto.  */
+/* button.tsx): "Frutiger Aero" de Uiverse.io (SelfMadeSystem),     */
+/* provisto por el usuario. Estructura: .frutiger-button (borde     */
+/* degradado) > .frutiger-inner (relleno + brillo animado) con      */
+/* .frutiger-top-white (reflejo superior) y .frutiger-text.         */
+/* El padding del inner sale de --fb-pad para poder tener tamaños   */
+/* (.fb-sm/.fb-lg/.fb-icon) sin pelearse con las utilidades de      */
+/* Tailwind, que quedan en un layer y perderían contra este CSS.    */
 /* ---------------------------------------------------------------- */
-.animation {
-  border-radius: 100%;
-  animation: btn-ripple 0.6s linear infinite;
+.frutiger-button {
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+  padding: 2px;
+  border-radius: 6px;
+  border: 0;
+  text-shadow: 1px 1px #000a;
+  background: linear-gradient(#0a1a5c, #3a63e8);
+  box-shadow: 0px 4px 6px 0px #0008;
+  transition: 0.3s all;
+  --fb-pad: 1em;
+  font-size: 14px;
 }
 
-@keyframes btn-ripple {
+.frutiger-button:hover {
+  box-shadow: 0px 6px 12px 0px #0009;
+}
+
+.frutiger-button:active {
+  box-shadow: 0px 0px 0px 0px #0000;
+}
+
+.frutiger-button.fb-sm { --fb-pad: 0.55em 0.9em; font-size: 12px; }
+.frutiger-button.fb-lg { --fb-pad: 1.1em 1.4em; font-size: 15px; }
+.frutiger-button.fb-icon { --fb-pad: 0.3em 0.65em; font-size: 16px; }
+
+.frutiger-inner {
+  position: relative;
+  display: block;
+  inset: 0px;
+  padding: var(--fb-pad);
+  border-radius: 4px;
+  background: radial-gradient(circle at 50% 100%, #6f95ff 10%, #6f95ff00 55%),
+    linear-gradient(#0a1650, #1b3ba8);
+  overflow: hidden;
+  transition: inherit;
+  text-align: center;
+}
+
+.frutiger-inner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(-65deg, #0000 40%, #fff7 50%, #0000 70%);
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: frutiger-shine 3s ease infinite;
+}
+
+@keyframes frutiger-shine {
   0% {
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.1), 0 0 0 20px rgba(255, 255, 255, 0.1), 0 0 0 40px rgba(255, 255, 255, 0.1), 0 0 0 60px rgba(255, 255, 255, 0.1);
+    background-position: 130%;
+    opacity: 1;
   }
-  100% {
-    box-shadow: 0 0 0 20px rgba(255, 255, 255, 0.1), 0 0 0 40px rgba(255, 255, 255, 0.1), 0 0 0 60px rgba(255, 255, 255, 0.1), 0 0 0 80px rgba(255, 255, 255, 0);
+
+  to {
+    background-position: -166%;
+    opacity: 0;
+  }
+}
+
+.frutiger-top-white {
+  position: absolute;
+  border-radius: inherit;
+  inset: 0 -8em;
+  background: radial-gradient(
+    circle at 50% -270%,
+    #fff 45%,
+    #fff6 60%,
+    #fff0 60%
+  );
+  transition: inherit;
+}
+
+.frutiger-inner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  transition: inherit;
+  box-shadow: inset 0px 2px 8px -2px #0000;
+}
+
+.frutiger-button:active .frutiger-inner::after {
+  box-shadow: inset 0px 2px 8px -2px #000a;
+}
+
+.frutiger-text {
+  position: relative;
+  z-index: 1;
+  color: white;
+  font-weight: 550;
+  transition: inherit;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+}
+
+/* ---------------------------------------------------------------- */
+/* Dropdowns: mismo diseño "Frutiger" azul rey de los botones.      */
+/* - <select> nativos: regla global (sin tocar cada uso). El borde  */
+/*   degradado se logra con un fondo de 2 capas (padding-box +       */
+/*   border-box) sobre un borde transparente. El tamaño (alto,      */
+/*   ancho, padding lateral) sigue viniendo de las clases Tailwind. */
+/* - .frutiger-menu: panel de FormatDropdown (menú de formatos).    */
+/* ---------------------------------------------------------------- */
+select {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  color: #fff;
+  font-weight: 550;
+  text-shadow: 1px 1px #000a;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  padding-right: 2rem;
+  box-shadow: 0px 4px 6px 0px #0008;
+  transition: box-shadow 0.3s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"),
+    radial-gradient(circle at 50% -270%, #fff 45%, #fff6 60%, #fff0 60%),
+    radial-gradient(circle at 50% 100%, #6f95ff 10%, #6f95ff00 55%),
+    linear-gradient(#0a1650, #1b3ba8),
+    linear-gradient(#0a1a5c, #3a63e8);
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center, 0 0, 0 0, 0 0, 0 0;
+  background-size: 12px 8px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+  background-origin: padding-box, padding-box, padding-box, padding-box, border-box;
+  background-clip: padding-box, padding-box, padding-box, padding-box, border-box;
+}
+
+select:hover:not(:disabled) {
+  box-shadow: 0px 6px 12px 0px #0009;
+}
+
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Campos de texto (input/textarea): mismo diseño que las cards (.royal-card)
+   — fondo "mesh" azul rey, brillo blanco inferior y borde degradado —, sin el
+   haz giratorio (un <input> no admite pseudo-elementos). Incluye el placeholder. */
+input:not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="button"], [type="submit"], [type="color"], [type="hidden"]),
+textarea {
+  color: #fff;
+  border: 1.5px solid transparent;
+  border-radius: 0.5rem;
+  box-shadow: 0px -8px 12px 0px rgba(255, 255, 255, 0.2) inset, 0px 4px 8px -2px rgba(10, 22, 80, 0.5);
+  transition: box-shadow 0.3s;
+  color-scheme: dark;
+  background-color: hsl(226, 70%, 12%);
+  background-image: radial-gradient(at 88% 40%, hsl(226, 70%, 12%) 0px, transparent 85%),
+    radial-gradient(at 49% 30%, hsl(226, 70%, 12%) 0px, transparent 85%),
+    radial-gradient(at 14% 26%, hsl(226, 70%, 12%) 0px, transparent 85%),
+    radial-gradient(at 0% 64%, hsl(225, 85%, 32%) 0px, transparent 85%),
+    radial-gradient(at 41% 94%, hsl(225, 80%, 42%) 0px, transparent 85%),
+    radial-gradient(at 100% 99%, hsl(226, 80%, 18%) 0px, transparent 85%),
+    linear-gradient(0deg, hsl(225, 90%, 65%) -50%, hsl(225, 40%, 35%) 100%);
+  background-origin: padding-box, padding-box, padding-box, padding-box, padding-box, padding-box, border-box;
+  background-clip: padding-box, padding-box, padding-box, padding-box, padding-box, padding-box, border-box;
+}
+
+input:not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="button"], [type="submit"], [type="color"], [type="hidden"]):hover:not(:disabled),
+textarea:hover:not(:disabled) {
+  box-shadow: 0px -8px 12px 0px rgba(255, 255, 255, 0.3) inset, 0px 6px 12px -2px rgba(10, 22, 80, 0.7);
+}
+
+input:not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="button"], [type="submit"], [type="color"], [type="hidden"]):disabled,
+textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: hsl(0, 0%, 83%);
+  opacity: 1;
+}
+
+/* La lista desplegable la dibuja el navegador/SO; solo se puede pintar el fondo y el texto. */
+select option {
+  background-color: #0a1650;
+  color: #fff;
+}
+
+.frutiger-menu {
+  border: 2px solid transparent;
+  border-radius: 6px;
+  box-shadow: 0px 8px 16px 0px #0009;
+  text-shadow: 1px 1px #000a;
+  background-image: radial-gradient(circle at 50% 100%, #6f95ff 5%, #6f95ff00 45%),
+    linear-gradient(#0a1650, #1b3ba8),
+    linear-gradient(#0a1a5c, #3a63e8);
+  background-origin: padding-box, padding-box, border-box;
+  background-clip: padding-box, padding-box, border-box;
+}
+
+.frutiger-menu > button {
+  color: #fff;
+  font-weight: 550;
+  transition: background-color 0.2s;
+}
+
+.frutiger-menu > button:hover,
+.frutiger-menu > button:focus-visible {
+  background-color: rgba(255, 255, 255, 0.18);
+  outline: none;
+}
+
+/* ---------------------------------------------------------------- */
+/* Nav (isla superior): efecto de los botones Frutiger — borde      */
+/* degradado, relleno azul con brillo inferior, reflejo superior y  */
+/* destello que barre. Solo en tema claro: en oscuro la isla sigue  */
+/* siendo blanca (ver --island-bg).                                 */
+/* ---------------------------------------------------------------- */
+:root:not([data-theme="dark"]) .frutiger-nav {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 2px solid transparent;
+  text-shadow: 1px 1px #000a;
+  box-shadow: 0px 6px 14px 0px #0008;
+  background-image: radial-gradient(circle at 50% 100%, #6f95ff 10%, #6f95ff00 55%),
+    linear-gradient(#0a1650, #1b3ba8),
+    linear-gradient(#0a1a5c, #3a63e8);
+  background-origin: padding-box, padding-box, border-box;
+  background-clip: padding-box, padding-box, border-box;
+}
+
+:root:not([data-theme="dark"]) .frutiger-nav::before,
+:root:not([data-theme="dark"]) .frutiger-nav::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Destello que cruza (mismo keyframes de .frutiger-inner) */
+:root:not([data-theme="dark"]) .frutiger-nav::before {
+  inset: 0;
+  background: linear-gradient(-65deg, #0000 40%, #fff7 50%, #0000 70%);
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: frutiger-shine 3s ease infinite;
+}
+
+/* Reflejo blanco superior (.top-white del snippet) */
+:root:not([data-theme="dark"]) .frutiger-nav::after {
+  border-radius: inherit;
+  inset: 0 -8em;
+  background: radial-gradient(circle at 50% -270%, #fff 45%, #fff6 60%, #fff0 60%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-theme="dark"]) .frutiger-nav::before {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------- */
+/* Formulario "Nueva actividad": estilo de Uiverse.io (John-CFO)    */
+/* provisto por el usuario, con fondo azul oscuro: degradado        */
+/* diagonal, borde blanco, resplandor azul, estrellas fugaces y     */
+/* título parpadeante. Igual que .royal-card, se redefinen los      */
+/* tokens de color para que todo se lea sobre el fondo oscuro.      */
+/* ---------------------------------------------------------------- */
+.space-form {
+  --text: #ffffff;
+  --muted: hsl(0, 0%, 83%);
+  --bg3: rgba(255, 255, 255, 0.14);
+  --border: rgba(255, 255, 255, 0.25);
+  --green: #4ade80;
+  --yellow: #fde047;
+  --red: #ff8a80;
+  --orange: #ffb067;
+  --blue: #9db8ff;
+  --blue-bg: rgba(157, 184, 255, 0.2);
+  --green-bg: rgba(74, 222, 128, 0.18);
+  --yellow-bg: rgba(253, 224, 71, 0.18);
+  --red-bg: rgba(255, 138, 128, 0.2);
+  --orange-bg: rgba(255, 176, 103, 0.2);
+  color: var(--text);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 2px solid #fff;
+  border-radius: 0.75rem;
+  background: linear-gradient(14deg, rgba(3, 8, 45, 0.97) 0%, rgba(8, 22, 82, 0.95) 66%, rgb(27, 59, 168) 100%),
+    radial-gradient(circle, rgba(3, 8, 45, 0.5) 0%, rgba(10, 20, 70, 0.2) 65%, rgba(4, 12, 40, 0.9) 100%);
+  background-color: #050b3a;
+  box-shadow: rgba(58, 99, 232, 0.9) 0px 0px 50px -15px;
+}
+
+.space-form > *:not(.space-form__stars) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Dentro del formulario, campos y botones toman EXACTAMENTE el estilo del snippet
+   (inputs blancos con borde blanco y fuente monoespaciada, botón gris plateado con
+   destello al pasar el mouse), en vez del diseño global de la app. */
+.space-form input:not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="button"], [type="submit"], [type="color"], [type="hidden"]),
+.space-form textarea,
+.space-form select {
+  background: #fff;
+  color: #111;
+  color-scheme: light;
+  text-shadow: none;
+  font-weight: 400;
+  font-family: monospace;
+  outline: none;
+  border: 2px solid #fff;
+  border-radius: 0;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.space-form select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23111' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 12px 8px;
+  background-origin: padding-box;
+  background-clip: border-box;
+}
+
+.space-form select option {
+  background-color: #fff;
+  color: #111;
+}
+
+.space-form input:not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="button"], [type="submit"], [type="color"], [type="hidden"]):hover:not(:disabled),
+.space-form textarea:hover:not(:disabled),
+.space-form select:hover:not(:disabled) {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.space-form input::placeholder,
+.space-form textarea::placeholder {
+  color: #757575;
+}
+
+.space-form input:focus::placeholder,
+.space-form textarea:focus::placeholder {
+  opacity: 0;
+  transition: opacity 0.9s;
+}
+
+/* Botón (.submit del snippet): gris plateado, borde blanco, mayúsculas, destello. */
+.space-form .frutiger-button {
+  --fb-pad: 8px;
+  background: #c0c0c0;
+  border: 2px solid #fff;
+  border-radius: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: monospace;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  text-transform: uppercase;
+  text-shadow: none;
+  box-shadow: none;
+}
+
+.space-form .frutiger-button .frutiger-inner {
+  background: none;
+  border-radius: 0;
+}
+
+.space-form .frutiger-button .frutiger-inner::before,
+.space-form .frutiger-button .frutiger-inner::after,
+.space-form .frutiger-button .frutiger-top-white {
+  display: none;
+}
+
+.space-form .frutiger-button .frutiger-text {
+  font-weight: 500;
+  color: #000;
+}
+
+.space-form .frutiger-button::before {
+  content: "";
+  display: block;
+  width: 0px;
+  height: 85%;
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  opacity: 0;
+  background: #fff;
+  box-shadow: 0 0 50px 30px #fff;
+  transform: skewX(-20deg);
+  pointer-events: none;
+}
+
+.space-form .frutiger-button:hover:not(:disabled) {
+  transition: all 0.2s ease-out;
+  border-radius: 3.9px;
+  box-shadow: 4px 5px 17px -4px #ffffff;
+}
+
+.space-form .frutiger-button:hover:not(:disabled)::before {
+  animation: space-shine 0.5s 0s linear;
+}
+
+@keyframes space-shine {
+  from { opacity: 0; left: 0%; }
+  50% { opacity: 1; }
+  to { opacity: 0; left: 100%; }
+}
+
+.space-form .royal-link {
+  color: #fff;
+}
+
+.space-form__title {
+  font-family: monospace;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.7);
+}
+
+.space-form__title > span {
+  animation: space-flicker 2s linear infinite both;
+}
+
+@keyframes space-flicker {
+  0%, 100% { opacity: 1; }
+  41.99% { opacity: 1; }
+  42% { opacity: 0; }
+  43% { opacity: 0; }
+  43.01% { opacity: 1; }
+  47.99% { opacity: 1; }
+  48% { opacity: 0; }
+  49% { opacity: 0; }
+  49.01% { opacity: 1; }
+}
+
+.space-form__stars {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.space-star {
+  position: absolute;
+  top: 0;
+  width: 4px;
+  height: 4px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1), 0 0 0 8px rgba(255, 255, 255, 0.1), 0 0 20px rgba(255, 255, 255, 0.1);
+  animation: space-star-fall 3s linear infinite;
+}
+
+.space-star::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 300px;
+  height: 1px;
+  background: linear-gradient(90deg, #fff, transparent);
+}
+
+@keyframes space-star-fall {
+  0% { transform: rotate(315deg) translateX(0); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: rotate(315deg) translateX(-1000px); opacity: 0; }
+}
+
+.space-star:nth-child(1) { right: 0; animation-delay: 0s; animation-duration: 1s; }
+.space-star:nth-child(2) { right: 100px; animation-delay: 0.2s; animation-duration: 3s; }
+.space-star:nth-child(3) { right: 220px; animation-delay: 2.75s; animation-duration: 2.75s; }
+.space-star:nth-child(4) { right: -220px; animation-delay: 1.6s; animation-duration: 1.6s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .space-star,
+  .space-form__title > span {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------- */
+/* Card del módulo de Auditorías: estilo de Uiverse.io              */
+/* (iconicchandu) provisto por el usuario, en azul rey. Fondo con   */
+/* "mesh" de degradados radiales, brillo blanco inferior y un borde */
+/* con un haz de luz que gira. El haz va en ::before (un cuadrado   */
+/* grande que rota, recortado por overflow:hidden) y el relleno en  */
+/* ::after (inset 1.5px), así solo queda visible el borde. Dentro   */
+/* de la card se redefinen los tokens de color para que texto,      */
+/* estados (verde/rojo/…) y fondos se lean sobre el azul oscuro     */
+/* tanto en tema claro como oscuro.                                 */
+/* ---------------------------------------------------------------- */
+.royal-card {
+  --rc-radius: 1rem;
+  --text: #ffffff;
+  --muted: hsl(0, 0%, 83%);
+  --bg3: rgba(255, 255, 255, 0.14);
+  --border: rgba(255, 255, 255, 0.2);
+  --green: #4ade80;
+  --yellow: #fde047;
+  --red: #ff8a80;
+  --orange: #ffb067;
+  --blue: #9db8ff;
+  --blue-bg: rgba(157, 184, 255, 0.2);
+  --green-bg: rgba(74, 222, 128, 0.18);
+  --yellow-bg: rgba(253, 224, 71, 0.18);
+  --red-bg: rgba(255, 138, 128, 0.2);
+  --orange-bg: rgba(255, 176, 103, 0.2);
+  color: var(--text);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: var(--rc-radius);
+  box-shadow: 0 8px 20px -6px rgba(10, 22, 80, 0.55);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.royal-card::before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  background: conic-gradient(
+    from 0deg,
+    hsl(225, 60%, 30%) 0%,
+    hsl(225, 90%, 65%) 8%,
+    hsl(0, 0%, 100%) 12%,
+    hsl(225, 90%, 65%) 16%,
+    hsl(225, 60%, 30%) 24%,
+    hsl(225, 60%, 30%) 100%
+  );
+  animation: royal-card-spin 8s linear infinite;
+}
+
+.royal-card::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 1.5px;
+  border-radius: calc(var(--rc-radius) - 1.5px);
+  background-color: hsl(226, 70%, 12%);
+  background-image: radial-gradient(at 88% 40%, hsl(226, 70%, 12%) 0px, transparent 85%),
+    radial-gradient(at 49% 30%, hsl(226, 70%, 12%) 0px, transparent 85%),
+    radial-gradient(at 14% 26%, hsl(226, 70%, 12%) 0px, transparent 85%),
+    radial-gradient(at 0% 64%, hsl(225, 85%, 32%) 0px, transparent 85%),
+    radial-gradient(at 41% 94%, hsl(225, 80%, 42%) 0px, transparent 85%),
+    radial-gradient(at 100% 99%, hsl(226, 80%, 18%) 0px, transparent 85%);
+  box-shadow: 0px -16px 24px 0px rgba(255, 255, 255, 0.2) inset;
+}
+
+.royal-card--interactive {
+  cursor: pointer;
+}
+.royal-card--interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px -8px rgba(10, 22, 80, 0.7);
+}
+
+/* Enlaces de texto (variantes ghost/link de Button) sobre el azul oscuro */
+.royal-card .royal-link {
+  color: #a9c1ff;
+}
+
+/* Línea divisoria interna (el .line del snippet) */
+.royal-card .royal-card__line {
+  width: 100%;
+  height: 0.1rem;
+  border: none;
+  background-color: hsl(226, 40%, 30%);
+}
+
+@keyframes royal-card-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .royal-card::before {
+    animation: none;
+  }
+  .royal-card {
+    transition: none;
   }
 }
 

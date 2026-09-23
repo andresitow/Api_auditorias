@@ -4,17 +4,11 @@ import { useForm } from "react-hook-form";
 import { deleteOccurrence } from "@/services/auditorias.service";
 import type { ActivityOccurrence } from "@/types/auditorias";
 import { Button } from "@/components/ui/button";
+import { inputCls, labelCls } from "@/lib/formStyles";
+import { formatFecha } from "@/lib/dates";
 
 interface FormValues {
   motivo: string;
-}
-
-const inputCls = "w-full bg-bg3 border border-border text-text rounded-md px-2.5 h-9 text-[13px] outline-none focus:border-blue";
-const labelCls = "text-[11px] uppercase tracking-wide text-muted mb-1 block";
-
-function formatFecha(iso: string) {
-  const [y, m, d] = iso.slice(0, 10).split("-");
-  return `${d}/${m}/${y}`;
 }
 
 /** Pide el motivo de eliminación antes de borrar una ocurrencia puntual. La ocurrencia
